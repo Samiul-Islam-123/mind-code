@@ -27,10 +27,10 @@ const IDE = () => {
 
   return (
     <Grid container spacing={1} style={{ height: '100vh' }}>
-      <Grid item xs={3}>
+      <Grid item xs={2}>
         <FileTree />
       </Grid>
-      <Grid item xs={6}>
+      <Grid item xs={7}>
         <CodeEditor
           ref={codeEditorRef}
           language={language}
