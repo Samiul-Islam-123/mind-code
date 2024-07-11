@@ -1,7 +1,7 @@
-const ProjectModel = require("../models/ProjectModel")
+const ProjectModel = require("../models/ProjectModel");
 const path = require("path");
 const UserModel = require("../models/UserModel");
-const { CreateDirectory } = require("../services/FolderServices");
+const { CreateDirectory, ReadEverythingInDirectory, DeleteDirectory } = require("../services/FolderServices");
 
 const rootdirectory = path.resolve(__dirname, "../../");
 const projectDirectory = path.join(rootdirectory, 'Projects');
@@ -14,42 +14,119 @@ const createProject = async (req, res) => {
             return res.json({
                 success: false,
                 message: "Invalid data"
-            })
+            });
 
-        //extract mongoDB document ID of owner
+        // Extract mongoDB document ID of owner
         const Owner = await UserModel.findOne({
             clerkID : clerkID
-        })
+        });
 
-        if(!Owner){
-        
-        return res.json({
+        if (!Owner) {
+            return res.json({
                 success: false,
                 message: "Owner not found"
-            })
+            });
         }
 
-        //create folder for project
-        const ProjectPath = path.join(projectDirectory, Owner._id.toString(), Projectname)
-        console.log(ProjectPath)
-        CreateDirectory(Projectname, ProjectPath)
+        // Create folder for project
+        const ProjectPath = path.join(projectDirectory, Owner._id.toString());
+        CreateDirectory(Projectname, ProjectPath);
 
         const NewProject = new ProjectModel({
             Projectname : Projectname,
             owner : Owner._id,
-            ProjectPath : ProjectPath,
+            ProjectPath : path.join(ProjectPath, Projectname),
             description : description
-        })
+        });
 
         await NewProject.save();
-    }
-    catch (error) {
+
+        res.json({
+            success : true,
+            message : "Project Created Successfully",
+            projectData : NewProject
+        });
+    } catch (error) {
         console.log(error);
         res.json({
             success: false,
             message: "Server error"
-        })
+        });
     }
 }
 
-module.exports = {createProject}
+const readProjectDetails = async (req, res) => {
+    try {
+        const { projectID, clerkID } = req.params;
+        const User = await UserModel.findOne({
+            clerkID : clerkID
+        });
+        const ProjectData = await ProjectModel.findOne({
+            _id : projectID,
+            owner : User._id
+        }).populate('owner');
+
+        if (!ProjectData) {
+            return res.json({
+                success : false,
+                message : "Project data not found"
+            });
+        }
+
+        const Data = ReadEverythingInDirectory(path.join(ProjectData.ProjectPath));
+        res.json({
+            success : true,
+            message : "Project data found",
+            projectData : ProjectData,
+            Data : Data
+        });
+    } catch (error) {
+        console.log(error);
+        res.json({
+            success: false,
+            message: "Server error"
+        });
+    }
+}
+
+const deleteProject = async (req, res) => {
+    try {
+        const { projectID, clerkID } = req.params;
+        const User = await UserModel.findOne({
+            clerkID : clerkID
+        });
+        const ProjectData = await ProjectModel.findOne({
+            _id : projectID,
+            owner : User._id
+        });
+
+        if (!ProjectData) {
+            return res.json({
+                success : false,
+                message : "Project not found"
+            });
+        }
+
+        // Delete the project directory
+        DeleteDirectory(path.join(ProjectData.ProjectPath, ProjectData.Projectname));
+
+        // Delete the project from the database
+        await ProjectModel.deleteOne({
+            _id: projectID,
+            owner: User._id
+        });
+
+        res.json({
+            success : true,
+            message : "Project deleted successfully"
+        });
+    } catch (error) {
+        console.log(error);
+        res.json({
+            success: false,
+            message: "Server error"
+        });
+    }
+}
+
+module.exports = { createProject, readProjectDetails, deleteProject };

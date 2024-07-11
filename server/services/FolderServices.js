@@ -37,7 +37,10 @@ const ReadEverythingInDirectory = (dirPath) => {
             const filePath = path.join(dirPath, file);
             const stat = fs.statSync(filePath);
             if (stat.isDirectory()) {
-                results = results.concat(ReadEverythingInDirectory(filePath));
+                // Ignore directories named node_modules
+                if (file !== 'node_modules') {
+                    results = results.concat(ReadEverythingInDirectory(filePath));
+                }
             } else {
                 results.push(filePath);
             }
@@ -47,6 +50,7 @@ const ReadEverythingInDirectory = (dirPath) => {
     }
     return results;
 };
+
 
 const DeleteDirectory = (dirPath) => {
     try {

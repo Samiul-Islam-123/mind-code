@@ -1,74 +1,67 @@
-import React, { useEffect, useState } from 'react'
-import { useUserData } from '../../Context/UserDataContext'
-import { Button, Card, CardActionArea, CardContent, Container, Grid, Toolbar, Typography } from '@mui/material';
+import React, { useEffect, useState } from 'react';
+import { useUserData } from '../../Context/UserDataContext';
+import { Button, Card, CardActionArea, CardContent, Container, Grid, Typography } from '@mui/material';
 import CreateProjectForm from '../CustomUIComponents/CreateProjectForm';
+import { useNavigate } from 'react-router-dom';
 
 function Home() {
-  const { userData, setUserData } = useUserData();
-
+  const { userData , makeAPICall} = useUserData();
   const [NewProjectFormOpened, setNewProjectFormOpened] = useState(false);
+  const navigate = useNavigate();
 
-  function toogleState() {
+  function toggleState() {
     setNewProjectFormOpened(!NewProjectFormOpened);
   }
 
   useEffect(() => {
-    console.log(userData)
-  }, [userData])
+    makeAPICall()
+  }, []);
 
   return (
-    <>
+    <Container
+      maxWidth="xl"
+      sx={{
+        flexGrow: 1,
+        mt: 2
+      }}
+    >
+      <Button variant="contained" color="primary" onClick={toggleState} sx={{ mb: 2 }}>
+        Create new Project
+      </Button>
 
-      <Container
-        maxWidth="xl"
-        sx={{
-          flexGrow: 1
-        }}
-      >
-        <Button onClick={toogleState}>
-          Create new Project
-        </Button>
+      {NewProjectFormOpened && <CreateProjectForm />}
 
-        {NewProjectFormOpened === true && (<CreateProjectForm />)}
-
-        {
-          userData && (<>
-            {
-              (userData.user) ? (<>
-
-                {userData.project.map(item => {
-                  return (
-                  <>
-                    <Grid container>
-                      <Grid item sx={4}>
-                        <Card>
-                          <CardActionArea>
-                            <CardContent>
-                              {item.Projectname}
-                            </CardContent>
-                          </CardActionArea>
-                        </Card>
-                      </Grid>
-                    </Grid>
-                  </>
-                  )
-                })
-                  
-                }
-
-
-              </>) : (<>
-                <Typography variant='h5'>
-                  Loading...
-                </Typography>
-              </>)
-            }
-          </>)
-        }
-
-      </Container>
-    </>
-  )
+      {userData ? (
+        userData.user ? (
+          <Grid container spacing={2}>
+            {userData.project.map((item, index) => (
+              <Grid item xs={12} sm={6} md={4} lg={3} key={index}>
+                <Card>
+                  <CardActionArea onClick={() => {
+                    navigate('project/'+item._id);
+                  }}>
+                    <CardContent>
+                      <Typography variant="h6" component="div">
+                        {item.Projectname}
+                      </Typography>
+                    </CardContent>
+                  </CardActionArea>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
+        ) : (
+          <Typography variant="h5">
+            Loading...
+          </Typography>
+        )
+      ) : (
+        <Typography variant="h5">
+          No user data available
+        </Typography>
+      )}
+    </Container>
+  );
 }
 
-export default Home
+export default Home;

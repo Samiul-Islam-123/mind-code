@@ -7,16 +7,11 @@ const CreateProjectForm = () => {
   const [projectName, setProjectName] = useState('');
   const [template, setTemplate] = useState('');
   const [description, setDescription] = useState('');
-  const {userData} = useUserData();
+  const {userData, makeAPICall} = useUserData();
 
   const handleSubmit =async (e) => {
     e.preventDefault();
     // Handle form submission, e.g., send data to an API
-    console.log({
-      projectName,
-      template,
-      description
-    });
 
     const Response = await axios.post(`${process.env.REACT_APP_API_URL}/project`, {
       Projectname : projectName,
@@ -24,7 +19,16 @@ const CreateProjectForm = () => {
       description : description
      })
 
-     console.log(Response)
+     //console.log(Response)
+
+     if(Response.data.success === true){
+      await makeAPICall()
+     }
+
+     else{
+      console.log(Response);
+      alert(Response.data.message)
+     }
   };
 
   return (
@@ -55,9 +59,11 @@ const CreateProjectForm = () => {
           label="Template"
           required
         >
-          <MenuItem value="template1">Template 1</MenuItem>
-          <MenuItem value="template2">Template 2</MenuItem>
-          <MenuItem value="template3">Template 3</MenuItem>
+          <MenuItem value="html">HTML, CSS, Javascript</MenuItem>
+          <MenuItem value="react">React App</MenuItem>
+          <MenuItem value="node">Node.js application</MenuItem>
+          <MenuItem value="mern">MERN stack application</MenuItem>
+          
         </Select>
       </FormControl>
 
