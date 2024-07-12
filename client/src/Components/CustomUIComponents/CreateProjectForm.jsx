@@ -16,8 +16,9 @@ const CreateProjectForm = () => {
     const Response = await axios.post(`${process.env.REACT_APP_API_URL}/project`, {
       Projectname : projectName,
       clerkID : userData.user.clerkID,
-      description : description
-     })
+      description : description,
+      template : template
+     }) 
 
      //console.log(Response)
 

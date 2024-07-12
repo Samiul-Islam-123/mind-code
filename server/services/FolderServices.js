@@ -1,5 +1,7 @@
 const fs = require("fs");
 const path = require("path");
+const rimraf = require('rimraf');
+
 
 const CreateDirectory = (DirName, projectDirectory) => {
     const dirPath = path.join(projectDirectory, DirName);
@@ -54,7 +56,7 @@ const ReadEverythingInDirectory = (dirPath) => {
 
 const DeleteDirectory = (dirPath) => {
     try {
-        fs.rmdirSync(dirPath, { recursive: true });
+        rimraf.sync(dirPath);
         console.log("Directory deleted successfully:", dirPath);
         return true;
     } catch (error) {

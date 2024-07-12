@@ -2,13 +2,14 @@ const ProjectModel = require("../models/ProjectModel");
 const path = require("path");
 const UserModel = require("../models/UserModel");
 const { CreateDirectory, ReadEverythingInDirectory, DeleteDirectory } = require("../services/FolderServices");
+const createTemplate = require("../services/TemplateService");
 
 const rootdirectory = path.resolve(__dirname, "../../");
 const projectDirectory = path.join(rootdirectory, 'Projects');
 
 const createProject = async (req, res) => {
     try {
-        const { Projectname, clerkID, description } = req.body;
+        const { Projectname, clerkID, description, template } = req.body;
 
         if (!Projectname || !clerkID)
             return res.json({
@@ -31,6 +32,8 @@ const createProject = async (req, res) => {
         // Create folder for project
         const ProjectPath = path.join(projectDirectory, Owner._id.toString());
         CreateDirectory(Projectname, ProjectPath);
+
+        await createTemplate(template, path.join(ProjectPath, Projectname))
 
         const NewProject = new ProjectModel({
             Projectname : Projectname,
@@ -108,7 +111,8 @@ const deleteProject = async (req, res) => {
         }
 
         // Delete the project directory
-        DeleteDirectory(path.join(ProjectData.ProjectPath, ProjectData.Projectname));
+        console.log(path.join(ProjectData.ProjectPath ))
+        DeleteDirectory(path.join(ProjectData.ProjectPath ));
 
         // Delete the project from the database
         await ProjectModel.deleteOne({
