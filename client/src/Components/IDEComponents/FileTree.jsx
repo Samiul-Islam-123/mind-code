@@ -1,39 +1,51 @@
-// src/components/FileTree.js
-import React, { useState } from 'react';
+import { useUser } from '@clerk/clerk-react';
+import axios from 'axios';
+import React, { useEffect, useState } from 'react';
 import { Treebeard } from 'react-treebeard';
+import { useCurrentCode } from '../../Context/CurrentCodeContext';
 
-const data = {
-  name: 'root',
-  toggled: true,
-  children: [
-    {
-      name: 'src',
-      children: [
-        { name: 'index.js' },
-        { name: 'App.js' }
-      ]
-    },
-    {
-      name: 'public',
-      children: [
-        { name: 'index.html' }
-      ]
-    }
-  ]
-};
-
-const FileTree = () => {
-  const [treeData, setTreeData] = useState(data);
+const FileTree = ({ fileStructure, files }) => {
+  const [treeData, setTreeData] = useState(fileStructure);
   const [cursor, setCursor] = useState(null);
+  const { user } = useUser();
+  const { setCurrentCode, setCurrentFilePath } = useCurrentCode();
 
-  const onToggle = (node, toggled) => {
+  function extractFileFromPaths(files, target) {
+    for (let file of files) {
+      if (file.split("\\").pop() === target) {
+        return file;
+      }
+    }
+  }
+
+  const onToggle = async (node, toggled) => {
     if (cursor) {
-      cursor.active = false;
+      setCursor({ ...cursor, toggled: false });
     }
     node.active = true;
+    node.toggled = toggled;
     if (node.children) {
-      node.toggled = toggled;
+      node.children.forEach(child => {
+        child.active = false; // Deactivate all children
+      });
     }
+
+    if (!node.children && files) {
+      const filePath = extractFileFromPaths(files, node.name);
+      if (filePath) {
+        const doubleBackslashPath = encodeURIComponent(filePath);
+        try {
+          const response = await axios.get(`${process.env.REACT_APP_API_URL}/editor/${doubleBackslashPath}/${user.id}`);
+          if (response.data.success === true) {
+            setCurrentCode(response.data.contents);
+            setCurrentFilePath(filePath)
+          }
+        } catch (error) {
+          console.error('Error fetching file contents:', error);
+        }
+      }
+    }
+
     setCursor(node);
     setTreeData({ ...treeData });
   };

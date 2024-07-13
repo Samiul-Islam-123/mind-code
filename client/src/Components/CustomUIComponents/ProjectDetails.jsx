@@ -14,6 +14,7 @@ import ReactFlow, {
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { buildFileTree } from '../../utils';
+import AlertDialog from './AlertDialog';
 
 function ProjectDetails() {
   const navigate = useNavigate();
@@ -23,6 +24,8 @@ function ProjectDetails() {
   const [files, setFiles] = useState([]);
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const [confirmation, setConfirmation] = React.useState(false);
+
 
   const fetchProjectData = async () => {
     try {
@@ -46,7 +49,7 @@ function ProjectDetails() {
       const { nodes, edges } = buildFileTree(files, projectData.owner._id);
 
       console.log(nodes)
-      
+
       setNodes(nodes);
       setEdges(edges);
     }
@@ -56,6 +59,27 @@ function ProjectDetails() {
     (params) => setEdges((eds) => addEdge(params, eds)),
     [setEdges]
   );
+
+  const handleDeleteProject = async () => {
+    const clerkID = user.id;
+
+    const response = await axios.delete(`${process.env.REACT_APP_API_URL}/project/${projectID}/${clerkID}`);
+    if (response.data.success === true) {
+
+      alert(projectData.Projectname + " deleted successfully")
+      navigate('/dashboard')
+    }
+
+    else {
+      console.log(response)
+      alert("Error")
+    }
+  }
+
+  useEffect(() => {
+    if (confirmation === true)
+      handleDeleteProject();
+  }, [confirmation])
 
   return (
     <Container maxWidth="xl" sx={{ mt: 4 }}>
@@ -71,14 +95,17 @@ function ProjectDetails() {
             <Typography variant="body1" gutterBottom>
               Last Updated: {new Date(projectData.updatedAt).toLocaleString()}
             </Typography>
-            <Typography variant="body1" gutterBottom>
-              Project Path: {projectData.ProjectPath}
-            </Typography>
+
+            <Button variant='outlined' onClick={()=>{
+              navigate(`/dashboard/ide/${projectID}`)
+            }}>
+              Open with Editor
+            </Button>
           </Paper>
 
-          <Paper sx={{ p: 3 }}>
+          <Paper sx={{ p: 2 }}>
             <Typography variant="h5" component="h2" gutterBottom>
-              Project Files
+              Project Strcuture
             </Typography>
             <div style={{ height: '70vh' }}>
               <ReactFlow
@@ -88,7 +115,7 @@ function ProjectDetails() {
                 onEdgesChange={onEdgesChange}
                 onConnect={onConnect}
                 fitView
-                
+
               >
                 <Controls />
                 <Background />
@@ -100,24 +127,17 @@ function ProjectDetails() {
         <Typography variant="h5">Loading...</Typography>
       )}
 
-      <Button onClick={async() => {
-        const clerkID = user.id;
+      <AlertDialog buttonName={"Delete Project"}
+        Type={'error'}
+        Dialogtitle={"Are you Sure, you want to Delete this project ? "}
+        DialogText={"Keep in mind on proceeding, all your project data will be removed permanently, if it's ok for you then click proceed or else click dismiss"}
+        AgreeContent={"Proceed"}
+        DisagreeContent={"Dismiss"}
+        confirmation={confirmation}
+        setConfirmation={setConfirmation}
+      />
 
-        const response = await axios.delete(`${process.env.REACT_APP_API_URL}/project/${projectID}/${clerkID}`);
-        if(response.data.success === true)
-        {
 
-          alert(projectData.Projectname+" deleted successfully")
-          navigate('/dashboard')
-        }
-
-        else
-        {
-          console.log(response)
-          alert("Error")
-        }
-
-      }}>Delete Project</Button>
     </Container>
   );
 }

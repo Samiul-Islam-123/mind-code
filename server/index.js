@@ -4,6 +4,7 @@ const dotenv = require("dotenv");
 const Connect = require("./configs/DatabaseConfig");
 const UserRouter = require("./routes/UserRouter");
 const ProjectRouter = require("./routes/ProjectRouter");
+const EditorRouter = require("./routes/EditorRouter");
 
 
 
@@ -23,6 +24,7 @@ app.get("/", (req,res) => {
 
 app.use("/user", UserRouter);
 app.use('/project', ProjectRouter)
+app.use("/editor", EditorRouter)
 
 app.listen(PORT,async() => {
     console.log("Server is starting...");

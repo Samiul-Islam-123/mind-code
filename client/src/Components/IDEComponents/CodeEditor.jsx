@@ -5,6 +5,20 @@ const CodeEditor = ({ language, value, onChange }) => {
   const editorRef = useRef(null);
   const monaco = useMonaco();
 
+  // Define onSave function
+  const onSave = async () => {
+    if (editorRef.current) {
+      console.log('Saving...');
+      try {
+        // Example: Making an API call using axios
+        // const response = await axios.post('/api/save', { code: editorRef.current.getValue() });
+        // console.log(response.data);
+      } catch (error) {
+        console.error('Error saving:', error);
+      }
+    }
+  };
+
   useEffect(() => {
     if (monaco && editorRef.current) {
       // Accessing editor instance
@@ -17,27 +31,29 @@ const CodeEditor = ({ language, value, onChange }) => {
       editor.onDidChangeModelContent(() => {
         onChange(editor.getValue());
       });
-    }
-  }, [monaco, onChange, value]);
 
-  const handleSetEditorValue = (newValue) => {
-    if (editorRef.current) {
-      editorRef.current.setValue(newValue);
-    }
-  };
+      // Adding keydown event listener for Ctrl + S
+      const handleKeyDown = (event) => {
+        if (event.ctrlKey && event.key === 's') {
+          event.preventDefault(); // Prevent default browser save action
+          onSave(); // Call onSave function
+        }
+      };
 
-  const handleGetEditorValue = () => {
-    if (editorRef.current) {
-      return editorRef.current.getValue();
-    }
-    return '';
-  };
+      // Ensure editor is focused to capture key events
+      editor.focus();
 
-  const handleFocusEditor = () => {
-    if (editorRef.current) {
-      editorRef.current.focus();
+      // Add keydown listener to editor instance
+      editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_S, onSave);
+
+      // Add event listener for keydown
+      editor.onKeyDown(handleKeyDown);
+
+      return () => {
+        editor.removeKeyDownListener(handleKeyDown);
+      };
     }
-  };
+  }, [monaco, onChange, onSave, value]);
 
   return (
     <Editor

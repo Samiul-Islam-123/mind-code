@@ -7,6 +7,7 @@ import { ClerkProvider } from "@clerk/clerk-react"
 import { SignedIn, SignedOut, RedirectToSignIn } from '@clerk/clerk-react';
 import { BrowserRouter } from "react-router-dom"
 import { ThemeContextProvider } from './Context/ThemeContext';
+import { CurrentCodeProvider } from './Context/CurrentCodeContext';
 
 const PUBLISHABLE_KEY = process.env.REACT_APP_CLERK_KEY;
 
@@ -16,16 +17,15 @@ if (!PUBLISHABLE_KEY) {
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
-  <React.StrictMode>
     <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
       <BrowserRouter>
         <ThemeContextProvider>
-
+          <CurrentCodeProvider>
           <App />
+          </CurrentCodeProvider>
         </ThemeContextProvider>
       </BrowserRouter>
     </ClerkProvider>
-  </React.StrictMode>
 );
 
 // If you want to start measuring performance in your app, pass a function

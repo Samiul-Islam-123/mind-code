@@ -1,4 +1,4 @@
-const fs = require("fs");
+const fs = require("fs").promises;
 const path = require("path");
 
 const CreateFile = (fileName, fileContent, directoryPath) => {
@@ -28,6 +28,17 @@ const ReadAllFiles = (directoryPath) => {
     }
 };
 
+const ReadSpecificFile = async (filePath) => {
+    try {
+      const fileContents = await fs.readFile(filePath, 'utf8');
+      //console.log(fileContents);
+      return fileContents;
+    } catch (error) {
+      console.error('Error reading file:', error);
+      return false;
+    }
+  };
+
 const DeleteFile = (filePath) => {
     try {
         fs.unlinkSync(filePath);
@@ -52,10 +63,10 @@ const RenameFile = (oldFilePath, newFileName) => {
     }
 };
 
-const SaveFileContents = (filePath, fileContent) => {
+const SaveFileContents = async(filePath, fileContent) => {
     try {
-        fs.writeFileSync(filePath, fileContent);
-        console.log("File saved successfully:", filePath);
+       await fs.writeFile(filePath, fileContent);
+        //console.log("File saved successfully:", filePath);
         return true;
     } catch (error) {
         console.error("Error saving file:", error);
@@ -68,5 +79,6 @@ module.exports = {
     ReadAllFiles,
     DeleteFile,
     RenameFile,
-    SaveFileContents
+    SaveFileContents,
+    ReadSpecificFile
 };

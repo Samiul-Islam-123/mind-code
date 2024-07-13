@@ -39,7 +39,7 @@ const Dashboard = () => {
       <div>
         <Routes>
           <Route path='/' element={<Home />} />
-          <Route path='/ide' element={<IDE />} />
+          <Route path='/ide/:projectID' element={<IDE />} />
           <Route path='/analytics' element={<Analytics />} />
           <Route path='/logout' element={<Logout />} />
           <Route path='/project/:projectID' element={<ProjectDetails />} />

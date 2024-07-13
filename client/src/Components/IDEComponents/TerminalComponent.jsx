@@ -57,7 +57,7 @@ function TerminalComponent({ onData }) {
   return (
     <div className="container">
       <Terminal 
-        height="82vh" 
+        height="81vh" 
         prompt=">" 
         colorMode={ColorMode.Dark} 
         onInput={handleTerminalInput}
