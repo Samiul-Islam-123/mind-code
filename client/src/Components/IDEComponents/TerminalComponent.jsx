@@ -1,10 +1,31 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Terminal, { ColorMode, TerminalOutput, TerminalInput } from 'react-terminal-ui';
+import { useSocket } from '../../Context/SocketContext';
+import { useCurrentCode } from '../../Context/CurrentCodeContext';
 
 function TerminalComponent({ onData }) {
   const [terminalLineData, setTerminalLineData] = useState([
     <TerminalOutput key={0}>Welcome to the React Terminal UI!</TerminalOutput>
   ]);
+
+  const {projectPath} = useCurrentCode();
+  const socket = useSocket();
+  const [connection, setConnection] = useState(false);
+
+  useEffect(() => {
+    if(socket){
+
+      socket.on("connected" , msg => {
+        console.log(msg)
+        setConnection(true);
+        socket.emit('setPath', projectPath)
+      })
+
+      socket.on('command-out', output => {
+        console.log(output)
+      });
+    }
+  },[socket])
 
   const handleTerminalInput = (input) => {
     console.log(`New terminal input received: '${input}'`);
@@ -43,6 +64,7 @@ function TerminalComponent({ onData }) {
       case 'clear':
         return [<TerminalOutput key={0}>Terminal cleared.</TerminalOutput>];
       default:
+       
         response = `Command not found: ${cmd}`;
         break;
     }
@@ -56,7 +78,8 @@ function TerminalComponent({ onData }) {
 
   return (
     <div className="container">
-      <Terminal 
+      {connection === true ? (<>
+        <Terminal 
         height="81vh" 
         prompt=">" 
         colorMode={ColorMode.Dark} 
@@ -64,6 +87,9 @@ function TerminalComponent({ onData }) {
       >
         {terminalLineData}
       </Terminal>
+      </>) : (<>
+        Connecting...
+      </>)}
     </div>
   );
 }

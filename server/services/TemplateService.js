@@ -1,4 +1,4 @@
-const RunCommand = require("./CommandExecutor");
+const runCommand = require("./CommandExecutor");
 
 const shell = require('shelljs');
 
@@ -44,7 +44,7 @@ const createTemplate =async (templateName, projectPath) => {
     if(template)
     {
         for(const cmd of template.commands){
-            await RunCommand(cmd)
+            await runCommand(cmd)
         }
     }
 }

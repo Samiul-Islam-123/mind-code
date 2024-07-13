@@ -6,9 +6,10 @@ const CurrentCodeContext = createContext();
 export const CurrentCodeProvider = ({children}) => {
     const [currentCode, setCurrentCode] = useState("//Please select any file to Display its contents");
     const [currentFilePath, setCurrentFilePath] = useState("");
+    const [projectPath, setprojectPath] = useState("");
 
     return(
-        <CurrentCodeContext.Provider value={{currentCode, setCurrentCode, currentFilePath, setCurrentFilePath}}>
+        <CurrentCodeContext.Provider value={{currentCode, setCurrentCode, currentFilePath, setCurrentFilePath, projectPath, setprojectPath}}>
             {children}
         </CurrentCodeContext.Provider>
     )

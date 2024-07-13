@@ -16,6 +16,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import FormDialog from '../CustomUIComponents/FormDialog';
 import DriveFileRenameOutlineIcon from '@mui/icons-material/DriveFileRenameOutline';
 import SaveIcon from '@mui/icons-material/Save';
+import { SocketContextProvider } from '../../Context/SocketContext';
 
 const IDE = () => {
   const [language, setLanguage] = useState('javascript');
@@ -24,7 +25,7 @@ const IDE = () => {
   const {user} = useUser();
   const [files, setFiles] = useState([]);
   const [fileStructure, setFileStructure] = useState(null);
-  const {currentCode, setCurrentCode, currentFilePath} = useCurrentCode();
+  const {currentCode, setCurrentCode, currentFilePath, setprojectPath} = useCurrentCode();
 
   const handleCodeChange = (newValue, event) => {
     setCurrentCode(newValue);
@@ -37,9 +38,10 @@ const IDE = () => {
   async function fetchProjectData(){
     const response = await axios.get(`${process.env.REACT_APP_API_URL}/project/${projectID}/${user.id}`);
     //console.log(`${process.env.REACT_APP_API_URL}/project/${projectID}/${user.id}`)
-    console.log(response)
+    //console.log(response)
     if(response.data.success === true)
       {setFiles(response.data.Data);
+        setprojectPath(response.data.projectData.ProjectPath)
         setFileStructure(buildTree(response.data.Data, response.data.projectData.Projectname));
 
       }
@@ -83,6 +85,8 @@ const IDE = () => {
   };
 
   return (
+    <SocketContextProvider>
+
     <Grid container spacing={1} style={{ height: '100vh' }}>
       <Grid item xs={2}>
       <IconButton
@@ -90,14 +94,14 @@ const IDE = () => {
       onClick={() => {
         const fileName = prompt("Enter file name alogn with its extension");
         if(fileName && fileName.includes('.'))
-        {
+          {
           console.log("Creating "+fileName)
         }
         else{
           alert("Invalid file name")
         }
       }}
-    >
+      >
       <Icon>
         <NoteAddIcon />
       </Icon>
@@ -133,7 +137,7 @@ const IDE = () => {
           language={language}
           value={currentCode}
           onChange={handleCodeChange}
-        />
+          />
       </Grid>
       <Grid item xs={3}>
       <Button variant='contained' style={{
@@ -146,6 +150,7 @@ const IDE = () => {
         
       </Grid>
     </Grid>
+        </SocketContextProvider>
   );
 };
 
