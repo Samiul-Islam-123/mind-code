@@ -21,4 +21,4 @@ jobs:
       - name: Start Application
         run: |
           cd server
-          MONGO_DB_URL=${{ secrets.MONGO_DB_URL }} npm start
+          npm start
