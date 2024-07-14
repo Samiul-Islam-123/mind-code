@@ -118,6 +118,7 @@ const IDE = () => {
           }
 
           const response = await axios.post(`${process.env.REACT_APP_API_URL}/editor/new-file`,payload)
+          console.log(response)
           if(response.data.success === true){
             await fetchProjectData();
           }
