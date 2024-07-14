@@ -1,4 +1,5 @@
 const { ReadSpecificFile, SaveFileContents, CreateFile } = require("../services/FileServices");
+const {CreateNewFolder, DeleteFileOrFolder, RenameFileOrFolder} = require("../services/FolderServices")
 
 const ReadfileContents =async (req,res) => {
     const {filePath, clerkID} = req.params;
@@ -142,5 +143,8 @@ const CreateNewFolderController = async (req, res) => {
 module.exports = {
     ReadfileContents,
     SaveCurrentFile,
-    CreateNewFile
+    CreateNewFile,
+    CreateNewFolderController,
+    DeleteFileOrFolderController,
+    RenameFileOrFolderController
 }
