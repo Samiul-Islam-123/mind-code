@@ -1,4 +1,4 @@
-const { ReadSpecificFile, SaveFileContents } = require("../services/FileServices");
+const { ReadSpecificFile, SaveFileContents, CreateFile } = require("../services/FileServices");
 
 const ReadfileContents =async (req,res) => {
     const {filePath, clerkID} = req.params;
@@ -43,7 +43,35 @@ const SaveCurrentFile = async(req,res) => {
     }
 }
 
+const CreateNewFile = async(req,res) => {
+    const {fileName, fileContent, directoryPath, clerkID} = req.body;
+
+    if(fileName && fileContent && directoryPath && clerkID){
+        if(await CreateFile(fileName, fileContent,directoryPath) === true){
+            return res.json({
+                success : true,
+                message : fileName+" Created successfully"
+            })
+        }
+
+        else{
+            return res.json({
+                success : false,
+                message : "Error occured"
+            })
+        }
+    }   
+    else
+    {
+        return res.json({
+            success : false,
+            message : "Insufficient Data"
+        })
+    }
+}
+
 module.exports = {
     ReadfileContents,
-    SaveCurrentFile
+    SaveCurrentFile,
+    CreateNewFile
 }

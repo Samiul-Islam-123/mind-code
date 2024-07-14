@@ -1,22 +1,23 @@
 const fs = require("fs").promises;
 const path = require("path");
 
-const CreateFile = (fileName, fileContent, directoryPath) => {
+const CreateFile = async (fileName, fileContent, directoryPath) => {
     const filePath = path.join(directoryPath, fileName);
 
-    fs.writeFileSync(filePath, fileContent, (error) => {
-        if (error) {
-            console.error("Error creating file:", error);
-            return error;
-        } else {
-            console.log("File created successfully:", filePath);
-        }
-    });
+    try {
+        await fs.writeFile(filePath, fileContent);
+        console.log("File created successfully:", filePath);
+        return true;
+    } catch (error) {
+        console.error("Error creating file:", error);
+        return false;
+    }
 };
 
-const ReadAllFiles = (directoryPath) => {
+const ReadAllFiles = async (directoryPath) => {
     try {
-        const files = fs.readdirSync(directoryPath, { withFileTypes: true })
+        const dirents = await fs.readdir(directoryPath, { withFileTypes: true });
+        const files = dirents
             .filter(dirent => dirent.isFile())
             .map(dirent => dirent.name);
 
@@ -30,18 +31,17 @@ const ReadAllFiles = (directoryPath) => {
 
 const ReadSpecificFile = async (filePath) => {
     try {
-      const fileContents = await fs.readFile(filePath, 'utf8');
-      //console.log(fileContents);
-      return fileContents;
+        const fileContents = await fs.readFile(filePath, 'utf8');
+        return fileContents;
     } catch (error) {
-      console.error('Error reading file:', error);
-      return false;
+        console.error('Error reading file:', error);
+        return false;
     }
-  };
+};
 
-const DeleteFile = (filePath) => {
+const DeleteFile = async (filePath) => {
     try {
-        fs.unlinkSync(filePath);
+        await fs.unlink(filePath);
         console.log("File deleted successfully:", filePath);
         return true;
     } catch (error) {
@@ -50,11 +50,11 @@ const DeleteFile = (filePath) => {
     }
 };
 
-const RenameFile = (oldFilePath, newFileName) => {
+const RenameFile = async (oldFilePath, newFileName) => {
     const newFilePath = path.join(path.dirname(oldFilePath), newFileName);
 
     try {
-        fs.renameSync(oldFilePath, newFilePath);
+        await fs.rename(oldFilePath, newFilePath);
         console.log("File renamed successfully:", oldFilePath, "->", newFilePath);
         return true;
     } catch (error) {
@@ -63,10 +63,10 @@ const RenameFile = (oldFilePath, newFileName) => {
     }
 };
 
-const SaveFileContents = async(filePath, fileContent) => {
+const SaveFileContents = async (filePath, fileContent) => {
     try {
-       await fs.writeFile(filePath, fileContent);
-        //console.log("File saved successfully:", filePath);
+        await fs.writeFile(filePath, fileContent);
+        console.log("File saved successfully:", filePath);
         return true;
     } catch (error) {
         console.error("Error saving file:", error);

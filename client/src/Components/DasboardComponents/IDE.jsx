@@ -3,7 +3,7 @@ import { Button, Grid, Icon, IconButton, Typography } from '@mui/material';
 import FileTree from '../IDEComponents/FileTree';
 import CodeEditor from '../IDEComponents/CodeEditor';
 import Terminal from '../IDEComponents/TerminalComponent';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import axios from "axios"
 import { useUser } from '@clerk/clerk-react';
 import buildTree from '../../Utils/TreeStrcuture';
@@ -18,6 +18,8 @@ import DriveFileRenameOutlineIcon from '@mui/icons-material/DriveFileRenameOutli
 import SaveIcon from '@mui/icons-material/Save';
 import { SocketContextProvider } from '../../Context/SocketContext';
 
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+
 const IDE = () => {
   const [language, setLanguage] = useState('javascript');
   const codeEditorRef = useRef(null);
@@ -25,7 +27,8 @@ const IDE = () => {
   const {user} = useUser();
   const [files, setFiles] = useState([]);
   const [fileStructure, setFileStructure] = useState(null);
-  const {currentCode, setCurrentCode, currentFilePath, setprojectPath} = useCurrentCode();
+  const {currentCode, setCurrentCode, currentFilePath, setprojectPath, projectPath, currentFolder} = useCurrentCode();
+  const navigate = useNavigate();
 
   const handleCodeChange = (newValue, event) => {
     setCurrentCode(newValue);
@@ -40,7 +43,9 @@ const IDE = () => {
     //console.log(`${process.env.REACT_APP_API_URL}/project/${projectID}/${user.id}`)
     //console.log(response)
     if(response.data.success === true)
-      {setFiles(response.data.Data);
+      {
+        //console.log(response.data.Data)
+        setFiles(response.data.Data);
         setprojectPath(response.data.projectData.ProjectPath)
         setFileStructure(buildTree(response.data.Data, response.data.projectData.Projectname));
 
@@ -89,13 +94,37 @@ const IDE = () => {
 
     <Grid container spacing={1} style={{ height: '100vh' }}>
       <Grid item xs={2}>
+
+      <IconButton onClick={() => {
+        navigate("/dashboard/project/"+projectID)
+      }}>
+        <Icon>
+        <ArrowBackIcon />
+        </Icon>
+      </IconButton>
+
       <IconButton
       
-      onClick={() => {
+      onClick={async () => {
         const fileName = prompt("Enter file name alogn with its extension");
         if(fileName && fileName.includes('.'))
           {
-          console.log("Creating "+fileName)
+          //console.log(projectPath + currentFolder + fileName)
+          const payload = {
+            fileName : fileName,
+            fileContent : "  ",
+            directoryPath : `${projectPath}/${currentFolder}`,
+            clerkID : user.id
+          }
+
+          const response = await axios.post(`${process.env.REACT_APP_API_URL}/editor/new-file`,payload)
+          if(response.data.success === true){
+            await fetchProjectData();
+          }
+
+          else{
+            alert(response.data.message)
+          }
         }
         else{
           alert("Invalid file name")
