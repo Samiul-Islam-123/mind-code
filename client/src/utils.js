@@ -7,11 +7,11 @@ export const buildFileTree = (paths, projectName) => {
   // Filter and process paths to make them relative to the project name
   const relativePaths = paths
     .filter(path => path.includes(projectName))
-    .map(path => path.split(`${projectName}\\`)[1]);
+    .map(path => path.split(`${projectName}/`)[1]);
 
   // Build the nested directory structure
   relativePaths.forEach((path) => {
-    const parts = path.split('\\');
+    const parts = path.split('/');
     let current = root;
 
     parts.forEach((part, index) => {
