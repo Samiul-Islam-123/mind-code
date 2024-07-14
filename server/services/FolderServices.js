@@ -1,90 +1,98 @@
 const fs = require("fs").promises;
 const path = require("path");
-const rimraf = require('rimraf');
 
-const CreateDirectory = (DirName, projectDirectory) => {
-    const dirPath = path.join(projectDirectory, DirName);
-    return fs.mkdir(dirPath, { recursive: true })
-        .then(() => {
-            console.log("Directory created successfully:", dirPath);
-        })
-        .catch((error) => {
-            console.error("Error creating directory:", error);
-            throw error;
-        });
+const CreateFile = async (fileName, fileContent, directoryPath) => {
+    const filePath = path.join(directoryPath, fileName);
+
+    try {
+        await fs.writeFile(filePath, fileContent);
+        console.log("File created successfully:", filePath);
+        return true;
+    } catch (error) {
+        console.error("Error creating file:", error);
+        return false;
+    }
 };
 
-const ReadAllDirectories = (projectDirectory) => {
-    return fs.readdir(projectDirectory, { withFileTypes: true })
-        .then((dirents) => {
-            const directories = dirents.filter(dirent => dirent.isDirectory())
-                .map(dirent => dirent.name);
-            console.log("All directories:", directories);
-            return directories;
-        })
-        .catch((error) => {
-            console.error("Error reading directories:", error);
-            return [];
-        });
+const ReadAllFiles = async (directoryPath) => {
+    try {
+        const dirents = await fs.readdir(directoryPath, { withFileTypes: true });
+        const files = dirents
+            .filter(dirent => dirent.isFile())
+            .map(dirent => dirent.name);
+
+        console.log("All files:", files);
+        return files;
+    } catch (error) {
+        console.error("Error reading files:", error);
+        return [];
+    }
 };
 
-const ReadEverythingInDirectory = (dirPath) => {
-    const results = [];
-    return fs.readdir(dirPath)
-        .then((files) => {
-            const promises = files.map((file) => {
-                const filePath = path.join(dirPath, file);
-                return fs.stat(filePath).then((stat) => {
-                    if (stat.isDirectory()) {
-                        if (file !== 'node_modules') {
-                            return ReadEverythingInDirectory(filePath).then((res) => {
-                                results.push(...res);
-                            });
-                        }
-                    } else {
-                        results.push(filePath);
-                    }
-                });
-            });
-            return Promise.all(promises);
-        })
-        .then(() => results)
-        .catch((error) => {
-            console.error("Error reading directory contents:", error);
-            return results;
-        });
+const ReadSpecificFile = async (filePath) => {
+    try {
+        const fileContents = await fs.readFile(filePath, 'utf8');
+        return fileContents;
+    } catch (error) {
+        console.error('Error reading file:', error);
+        return false;
+    }
 };
 
-const DeleteDirectory = (dirPath) => {
-    return new Promise((resolve, reject) => {
-        rimraf(dirPath, (error) => {
-            if (error) {
-                console.error("Error deleting directory:", error);
-                reject(error);
-            } else {
-                console.log("Directory deleted successfully:", dirPath);
-                resolve(true);
-            }
-        });
-    });
+const DeleteFileOrFolder = async (filePath) => {
+    try {
+        await fs.rm(filePath, { recursive: true, force: true });
+        console.log("File or folder deleted successfully:", filePath);
+        return true;
+    } catch (error) {
+        console.error("Error deleting file or folder:", error);
+        return false;
+    }
 };
 
-const RenameDirectory = (oldDirPath, newDirName) => {
-    const newDirPath = path.join(path.dirname(oldDirPath), newDirName);
-    return fs.rename(oldDirPath, newDirPath)
-        .then(() => {
-            console.log("Directory renamed successfully:", oldDirPath, "->", newDirPath);
-        })
-        .catch((error) => {
-            console.error("Error renaming directory:", error);
-            throw error;
-        });
+const RenameFileOrFolder = async (oldPath, newName) => {
+    const newPath = path.join(path.dirname(oldPath), newName);
+
+    try {
+        await fs.rename(oldPath, newPath);
+        console.log("File or folder renamed successfully:", oldPath, "->", newPath);
+        return true;
+    } catch (error) {
+        console.error("Error renaming file or folder:", error);
+        return false;
+    }
+};
+
+const SaveFileContents = async (filePath, fileContent) => {
+    try {
+        await fs.writeFile(filePath, fileContent);
+        console.log("File saved successfully:", filePath);
+        return true;
+    } catch (error) {
+        console.error("Error saving file:", error);
+        return false;
+    }
+};
+
+const CreateNewFolder = async (directoryPath, folderName) => {
+    const folderPath = path.join(directoryPath, folderName);
+
+    try {
+        await fs.mkdir(folderPath, { recursive: true });
+        console.log("Folder created successfully:", folderPath);
+        return true;
+    } catch (error) {
+        console.error("Error creating folder:", error);
+        return false;
+    }
 };
 
 module.exports = {
-    CreateDirectory,
-    ReadAllDirectories,
-    ReadEverythingInDirectory,
-    DeleteDirectory,
-    RenameDirectory
+    CreateFile,
+    ReadAllFiles,
+    ReadSpecificFile,
+    DeleteFileOrFolder,
+    RenameFileOrFolder,
+    SaveFileContents,
+    CreateNewFolder
 };

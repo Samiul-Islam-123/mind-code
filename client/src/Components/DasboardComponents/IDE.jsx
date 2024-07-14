@@ -137,7 +137,31 @@ const IDE = () => {
       </Icon>
     </IconButton>
 
-        <IconButton>
+        <IconButton onClick={async () => {
+        const directoryName = prompt("Enter directory name ");
+        if(directoryName)
+          {
+          //console.log(projectPath + currentFolder + directoryName)
+          const payload = {
+            folderName : directoryName,
+            directoryPath : `${projectPath}/${currentFolder}`,
+            clerkID : user.id
+          }
+
+          const response = await axios.post(`${process.env.REACT_APP_API_URL}/editor/new-file`,payload)
+          console.log(response)
+          if(response.data.success === true){
+            await fetchProjectData();
+          }
+
+          else{
+            alert(response.data.message)
+          }
+        }
+        else{
+          alert("Invalid Directory name")
+        }
+      }}>
           <Icon>
               <CreateNewFolderIcon />
           </Icon>

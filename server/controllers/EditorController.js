@@ -70,6 +70,75 @@ const CreateNewFile = async(req,res) => {
     }
 }
 
+const DeleteFileOrFolderController = async (req, res) => {
+    const { filePath, clerkID } = req.body;
+
+    if (filePath && clerkID) {
+        if (await DeleteFileOrFolder(filePath) === true) {
+            return res.json({
+                success: true,
+                message: "File or folder deleted successfully"
+            });
+        } else {
+            return res.json({
+                success: false,
+                message: "Error occurred"
+            });
+        }
+    } else {
+        return res.json({
+            success: false,
+            message: "Insufficient Data"
+        });
+    }
+};
+
+const RenameFileOrFolderController = async (req, res) => {
+    const { oldPath, newName, clerkID } = req.body;
+
+    if (oldPath && newName && clerkID) {
+        if (await RenameFileOrFolder(oldPath, newName) === true) {
+            return res.json({
+                success: true,
+                message: "File or folder renamed successfully"
+            });
+        } else {
+            return res.json({
+                success: false,
+                message: "Error occurred"
+            });
+        }
+    } else {
+        return res.json({
+            success: false,
+            message: "Insufficient Data"
+        });
+    }
+};
+
+const CreateNewFolderController = async (req, res) => {
+    const { directoryPath, folderName, clerkID } = req.body;
+
+    if (directoryPath && folderName && clerkID) {
+        if (await CreateNewFolder(directoryPath, folderName) === true) {
+            return res.json({
+                success: true,
+                message: `${folderName} created successfully`
+            });
+        } else {
+            return res.json({
+                success: false,
+                message: "Error occurred"
+            });
+        }
+    } else {
+        return res.json({
+            success: false,
+            message: "Insufficient Data"
+        });
+    }
+};
+
 module.exports = {
     ReadfileContents,
     SaveCurrentFile,
