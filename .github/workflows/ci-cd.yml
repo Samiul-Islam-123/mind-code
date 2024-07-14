@@ -18,11 +18,7 @@ jobs:
           cd server
           npm install
 
-      - name: Set MongoDB URI
-        env:
-          MONGO_DB_URL: ${{ secrets.MONGO_DB_URL }}
-
       - name: Start Application
         run: |
           cd server
-          npm start
+          MONGO_DB_URL=${{ secrets.MONGO_DB_URL }} npm start
