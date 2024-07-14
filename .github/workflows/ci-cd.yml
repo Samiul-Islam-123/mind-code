@@ -18,6 +18,10 @@ jobs:
           cd server
           npm install
 
+      - name: Set up environment variables
+        env:
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+
       - name: Start Application
         run: |
           cd server
