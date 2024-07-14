@@ -15,8 +15,10 @@ jobs:
 
       - name: Install Dependencies
         run: |
+          cd server
           npm install
 
       - name: Start Application
         run: |
+          cd server
           npm start
