@@ -46,7 +46,8 @@ const createTemplate =async (templateName, projectPath) => {
     if(template)
     {
         for(const cmd of template.commands){
-            await runCommand(cmd)
+            console.log("Running command : "+cmd)
+            console.log (await runCommand(cmd))
         }
     }
 }
