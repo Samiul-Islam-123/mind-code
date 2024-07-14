@@ -7,18 +7,26 @@ on:
 
 jobs:
   build:
-    runs-on: self-hosted  #  Ubuntu runner
+    runs-on: self-hosted  # Self-hosted Ubuntu runner
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v2  # Action to checkout your repository
+
+      - name: Install PM2
+        run: |
+          npm install pm2 -g
+
+      - name: Stop PM2
+        run: |
+          pm2 stop all || true  # Stop all running PM2 processes, ignore error if none are running
 
       - name: Install Dependencies
         run: |
           cd server
           npm install
 
-      - name: Start Application
+      - name: Start Application with PM2
         run: |
           cd server
-          npm start
+          pm2 start index.js  # Start your application using PM2, replace 'index.js' with your entry file if different
