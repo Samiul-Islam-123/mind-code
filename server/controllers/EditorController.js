@@ -1,4 +1,5 @@
 const { ReadSpecificFile, SaveFileContents, CreateFile } = require("../services/FileServices");
+const { CreateDirectory } = require("../services/FolderServices");
 
 const ReadfileContents =async (req,res) => {
     const {filePath, clerkID} = req.params;
@@ -70,11 +71,36 @@ const CreateNewFile = async(req,res) => {
     }
 }
 
+
+
 const DeleteFileOrFolderController = async (req, res) => {
     const { filePath, clerkID } = req.body;
 
     if (filePath && clerkID) {
         if (await DeleteFileOrFolder(filePath) === true) {
+            return res.json({
+                success: true,
+                message: "File or folder deleted successfully"
+            });
+        } else {
+            return res.json({
+                success: false,
+                message: "Error occurred"
+            });
+        }
+    } else {
+        return res.json({
+            success: false,
+            message: "Insufficient Data"
+        });
+    }
+};
+
+const CreateNewFolderController = async (req, res) => {
+    const { DirName, projectDirectory, clerkID } = req.body;
+
+    if (DirName && projectDirectory && clerkID) {
+        if (await CreateDirectory(DirName, projectDirectory) === true) {
             return res.json({
                 success: true,
                 message: "File or folder deleted successfully"
@@ -121,5 +147,6 @@ const RenameFileOrFolderController = async (req, res) => {
 module.exports = {
     ReadfileContents,
     SaveCurrentFile,
-    CreateNewFile
+    CreateNewFile,
+    CreateNewFolderController
 }
