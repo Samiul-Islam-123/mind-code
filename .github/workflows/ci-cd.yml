@@ -13,14 +13,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2  # Action to checkout your repository
 
-      - name: Install PM2
-        run: |
-          npm install pm2 -g
-
-      - name: Stop PM2
-        run: |
-          pm2 stop all || true  # Stop all running PM2 processes, ignore error if none are running
-
       - name: Install Dependencies
         run: |
           cd server
