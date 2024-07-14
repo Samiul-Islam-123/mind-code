@@ -3,7 +3,7 @@ name: CI/CD Pipeline
 on:
   push:
     branches:
-      - master  # Adjust to your branch name
+      - main  # Adjust to your branch name
 
 jobs:
   build:
@@ -13,18 +13,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2  # Action to checkout your repository
 
-      - name: Install pm2
-        run: |
-          npm install pm2 -g
-
-      - name: Stop PM2
-        run: |
-          pm2 stop all
-
       - name: Install Dependencies
         run: |
           npm install
 
-      - name: Start PM2
+      - name: Start Application
         run: |
-          pm2 start index.js  # Replace with your entry file
+          npm start
