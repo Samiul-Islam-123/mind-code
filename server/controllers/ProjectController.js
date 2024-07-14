@@ -31,7 +31,7 @@ const createProject = async (req, res) => {
 
         // Create folder for project
         const ProjectPath = path.join(projectDirectory, Owner._id.toString());
-        CreateDirectory(Projectname, ProjectPath);
+        await CreateDirectory(Projectname, ProjectPath);
 
         await createTemplate(template, path.join(ProjectPath, Projectname))
 
@@ -76,7 +76,7 @@ const readProjectDetails = async (req, res) => {
             });
         }
 
-        const Data = ReadEverythingInDirectory(path.join(ProjectData.ProjectPath));
+        const Data =await ReadEverythingInDirectory(path.join(ProjectData.ProjectPath));
         res.json({
             success : true,
             message : "Project data found",
