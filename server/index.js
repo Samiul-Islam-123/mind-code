@@ -106,6 +106,6 @@ const getCurrentPath = () => {
 
 server.listen(PORT, async () => {
   console.log("Server is starting...");
-  await Connect(process.env.MONGO_DB_URL); // Connect to MongoDB or your database
+  await Connect(`mongodb+srv://isamiul099:1zYNcTUjB9HfB34R@cluster0.9whcd58.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`); // Connect to MongoDB or your database
   console.log("Server is up and running on PORT: " + PORT);
 });
