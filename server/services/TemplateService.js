@@ -39,6 +39,7 @@ const commandsTemplates = [
 const createTemplate =async (templateName, projectPath) => {
     const template = commandsTemplates.find(t => t.template === templateName);
     
+    
     shell.cd(projectPath)
     
     if(template)
