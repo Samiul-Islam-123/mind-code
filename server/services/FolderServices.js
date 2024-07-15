@@ -64,6 +64,7 @@ const DeleteDirectory = (dirPath) => {
             if (error) {
                 console.error("Error deleting directory:", error);
                 reject(error);
+                return false;
             } else {
                 console.log("Directory deleted successfully:", dirPath);
                 resolve(true);
@@ -74,14 +75,18 @@ const DeleteDirectory = (dirPath) => {
 
 const RenameDirectory = (oldDirPath, newDirName) => {
     const newDirPath = path.join(path.dirname(oldDirPath), newDirName);
-    return fs.rename(oldDirPath, newDirPath)
-        .then(() => {
-            console.log("Directory renamed successfully:", oldDirPath, "->", newDirPath);
-        })
-        .catch((error) => {
-            console.error("Error renaming directory:", error);
-            throw error;
-        });
+
+    return new Promise((resolve, reject) => {
+        fs.rename(oldDirPath, newDirPath)
+            .then(() => {
+                console.log("Directory renamed successfully:", oldDirPath, "->", newDirPath);
+                resolve(true);
+            })
+            .catch((error) => {
+                console.error("Error renaming directory:", error);
+                reject(error);
+            });
+    });
 };
 
 module.exports = {

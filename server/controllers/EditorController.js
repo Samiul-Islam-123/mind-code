@@ -1,5 +1,5 @@
 const { ReadSpecificFile, SaveFileContents, CreateFile } = require("../services/FileServices");
-const { CreateDirectory } = require("../services/FolderServices");
+const { CreateDirectory, DeleteDirectory, RenameDirectory } = require("../services/FolderServices");
 
 const ReadfileContents =async (req,res) => {
     const {filePath, clerkID} = req.params;
@@ -82,11 +82,68 @@ const CreateNewFolder = async(req,res) => {
                 })
             
     }
+    else
+    {
+        return res.json({
+            success : false,
+            message : "Insufficient Data"
+        })
+    }
+}
+
+const DeleteController = async(req,res) => {
+    const {dirPath, clerkID} = req.body;
+    if(dirPath && clerkID){
+        if(await DeleteDirectory(dirPath) === true)
+            return res.json({
+                success : true,
+                message : "Deleted Successfully"
+            })
+
+        else
+        return res.json({
+            success : false,
+            message : "Error"
+        })
+    }
+    else
+    {
+        return res.json({
+            success : false,
+            message : "Insufficient Data"
+        })
+    }
+}
+
+const RenameController = async(req,res) => {
+    const {oldPath, newDirName, clerkID} = req.body;
+    if(oldPath && newDirName && clerkID){
+        if(await RenameDirectory(oldPath, newDirName) === true)
+            return res.json({
+                success : true,
+                message : "Renamed Successfully"
+            })
+
+        else
+        return res.json({
+            success : false,
+            message : "Error"
+        })
+    }
+    else
+    {
+        return res.json({
+            success : false,
+            message : "Insufficient Data"
+        })
+    }
 }
 
 module.exports = {
     ReadfileContents,
     SaveCurrentFile,
     CreateNewFile,
-    CreateNewFolder
+    CreateNewFolder,
+    DeleteController,
+    RenameController
 }
