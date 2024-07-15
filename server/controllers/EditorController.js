@@ -1,6 +1,6 @@
 const { ReadSpecificFile, SaveFileContents, CreateFile } = require("../services/FileServices");
 const { CreateDirectory, RenameDirectory, DeleteFileOrDirectory } = require("../services/FolderServices");
-const fs = require(fs).promises
+const fs = require('fs').promises
 
 const ReadfileContents =async (req,res) => {
     const {filePath, clerkID} = req.params;
