@@ -197,7 +197,7 @@ const IDE = () => {
 
             else{
               const response = await axios.post(`${process.env.REACT_APP_API_URL}/editor/delete-folder`, {
-                folderPath: `${projectPath}/${currentFolder}`              });
+                folderPath: `${projectPath}/${currentFolder}`});
               if (response.data.success) {
                 await fetchProjectData();
               } else {

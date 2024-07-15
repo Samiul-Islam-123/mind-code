@@ -19,7 +19,7 @@ EditorRouter.post('/delete-folder', async (req, res) => {
         }
 
         // Construct absolute path
-        const absolutePath = path.join(__dirname, folderPath);
+        const absolutePath = folderPath
 
         // Check if the path exists
         const pathExists = await fs.access(absolutePath)
@@ -52,7 +52,7 @@ EditorRouter.post('/delete-file', async (req, res) => {
         }
 
         // Construct absolute path
-        const absolutePath = path.join(__dirname, filePath);
+        const absolutePath = filePath
 
         // Check if the file exists
         const fileExists = await fs.access(absolutePath)
