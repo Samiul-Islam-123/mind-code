@@ -1,4 +1,5 @@
 function buildTree(paths, Projectname){
+    console.log(paths)
   const root = { name: Projectname, toggled: true, children: [] };
 
   paths.forEach(path => {

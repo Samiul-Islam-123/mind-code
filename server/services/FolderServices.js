@@ -38,6 +38,7 @@ const ReadEverythingInDirectory = (dirPath) => {
                 const filePath = path.join(dirPath, file);
                 return fs.stat(filePath).then((stat) => {
                     if (stat.isDirectory()) {
+                        results.push(filePath); // Add directory path to results
                         if (file !== 'node_modules') {
                             return ReadEverythingInDirectory(filePath).then((res) => {
                                 results.push(...res);
