@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Button, Grid, Icon, IconButton, Typography } from '@mui/material';
+import { Button, CircularProgress, Grid, Icon, IconButton, Typography } from '@mui/material';
 import FileTree from '../IDEComponents/FileTree';
 import CodeEditor from '../IDEComponents/CodeEditor';
 import Terminal from '../IDEComponents/TerminalComponent';
@@ -20,15 +20,25 @@ import { SocketContextProvider } from '../../Context/SocketContext';
 
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
+
+
 const IDE = () => {
   const [language, setLanguage] = useState('javascript');
   const codeEditorRef = useRef(null);
-  const {projectID} = useParams();
-  const {user} = useUser();
+  const { projectID } = useParams();
+  const { user } = useUser();
   const [files, setFiles] = useState([]);
   const [fileStructure, setFileStructure] = useState(null);
-  const {currentCode, setCurrentCode, currentFilePath, setprojectPath, projectPath, currentFolder} = useCurrentCode();
+  const { currentCode, setCurrentCode, currentFilePath, setprojectPath, projectPath, currentFolder, loading, setLoading } = useCurrentCode();
   const navigate = useNavigate();
+  // State to manage key for FileTree component
+  const [fileTreeKey, setFileTreeKey] = useState(0); // Initial key
+
+
+  // Update fileTreeKey to trigger FileTree component rerender
+  const updateFileTree = () => {
+    setFileTreeKey(prevKey => prevKey + 1); // Increment key to force rerender
+  };
 
   const handleCodeChange = (newValue, event) => {
     setCurrentCode(newValue);
@@ -38,45 +48,52 @@ const IDE = () => {
   //   console.log(detectLanguages(currentCode))
   // },[currentCode])
 
-  async function fetchProjectData(){
+  async function fetchProjectData() {
+    setLoading(true);
     const response = await axios.get(`${process.env.REACT_APP_API_URL}/project/${projectID}/${user.id}`);
     //console.log(`${process.env.REACT_APP_API_URL}/project/${projectID}/${user.id}`)
-    //console.log(response)
-    if(response.data.success === true)
-      {
-        //console.log(response.data.Data)
-        setFiles(response.data.Data);
-        setprojectPath(response.data.projectData.ProjectPath)
-        setFileStructure(buildTree(response.data.Data, response.data.projectData.Projectname));
+    console.log(response)
+    if (response.data.success === true) {
+      //console.log(response.data.Data)
+      setFiles(response.data.Data);
+      setprojectPath(response.data.projectData.ProjectPath)
 
-      }
-    else{
+      // Update file structure after fetching new data
+      const updatedFileStructure = buildTree(response.data.Data, response.data.projectData.Projectname);
+      setFileStructure(updatedFileStructure);
+      //setFileStructure(buildTree(response.data.Data, response.data.projectData.Projectname));
+
+    }
+    else {
       alert(response.data.message)
       console.log(response)
     }
+    setLoading(false)
   }
 
   useEffect(() => {
     fetchProjectData();
 
-  },[])
+  }, [])
 
 
 
-  const handleCurrentFileSave = async() => {
+  const handleCurrentFileSave = async () => {
+    setLoading(true)
     const payload = {
-      filePath : currentFilePath,
-      fileContents : currentCode,
-      clerkID : user.id
+      filePath: currentFilePath,
+      fileContents: currentCode,
+      clerkID: user.id
     }
 
-      if (payload.filePath === "") {
-        alert("Please select a file to save");
-        return; // Exit the function early if filePath is empty
-      }
+    if (payload.filePath === "") {
+      alert("Please select a file to save");
+      return; // Exit the function early if filePath is empty
+    }
 
     const response = await axios.post(`${process.env.REACT_APP_API_URL}/editor/save-file`, payload);
     console.log(response)
+    setLoading(false)
   }
 
   const handleTerminalData = (data) => {
@@ -96,185 +113,215 @@ const IDE = () => {
   return (
     <SocketContextProvider>
 
-    <Grid container spacing={1} style={{ height: '100vh' }}>
-      <Grid item xs={2}>
+      <Grid container spacing={1} style={{ height: '100vh' }}>
+        <Grid item xs={2}>
 
-      <IconButton onClick={() => {
-        navigate("/dashboard/project/"+projectID)
-      }}>
-        <Icon>
-        <ArrowBackIcon />
-        </Icon>
-      </IconButton>
+          <IconButton onClick={() => {
+            navigate("/dashboard/project/" + projectID)
+          }}>
+            <Icon>
+              <ArrowBackIcon />
+            </Icon>
+          </IconButton>
 
-      <IconButton
-      
-      onClick={async () => {
-        const fileName = prompt("Enter file name alogn with its extension");
-        if(fileName && fileName.includes('.'))
-          {
-          //console.log(projectPath + currentFolder + fileName)
-          const payload = {
-            fileName : fileName,
-            fileContent : "  ",
-            directoryPath : `${projectPath}/${currentFolder}`,
-            clerkID : user.id
-          }
+          <IconButton
 
-          const response = await axios.post(`${process.env.REACT_APP_API_URL}/editor/new-file`,payload)
-          if(response.data.success === true){
-            await fetchProjectData();
-          }
+            onClick={async () => {
+              setLoading(true)
 
-          else{
-            alert(response.data.message)
-          }
-        }
-        else{
-          alert("Invalid file name")
-        }
-      }}
-      >
-      <Icon>
-        <NoteAddIcon />
-      </Icon>
-    </IconButton>
+              const fileName = prompt("Enter file name alogn with its extension");
+              if (fileName && fileName.includes('.')) {
+                //console.log(projectPath + currentFolder + fileName)
+                const payload = {
+                  fileName: fileName,
+                  fileContent: fileName,
+                  directoryPath: `${projectPath}/${currentFolder}`,
+                  clerkID: user.id
+                }
 
-        <IconButton  onClick={async () => {
-        const folderName = prompt("Enter folder name ");
-        if(folderName)
-          {
-          //console.log(projectPath + currentFolder + folderName)
-          const payload = {
-            DirName : `${currentFolder}/${folderName}`,
-            projectDirectory : `${projectPath}`,
-            clerkID : user.id
-          }
+                const response = await axios.post(`${process.env.REACT_APP_API_URL}/editor/new-file`, payload)
+                if (response.data.success === true) {
+                  await fetchProjectData();
+                  updateFileTree();
 
-          console.log(payload)
+                }
 
-          const response = await axios.post(`${process.env.REACT_APP_API_URL}/editor/new-folder`,payload)
-          if(response.data.success === true){
-            await fetchProjectData();
-          }
-
-          else{
-            alert(response.data.message)
-          }
-        }
-        else{
-          alert("Invalid folder name")
-        }
-      }}>
-          <Icon>
-              <CreateNewFolderIcon />
-          </Icon>
-        </IconButton>
-
-        <IconButton onClick={async() => {
-           try {
-            const payload = {
-              dirPath: `${projectPath}/${currentFolder}`,
-              clerkID: user.id,
-            };
-
-            console.log(payload);
-
-            if(payload.dirPath.includes('.') === true){
-              //delete file
-
-              const response = await axios.post(`${process.env.REACT_APP_API_URL}/editor/delete-file`, {
-                filePath: `${projectPath}/${currentFolder}`
-              });
-              console.log(response)
-              if (response.data.success) {
-                await fetchProjectData();
-              } else {
-                console.log(response)
-                alert(response.data.message);
+                else {
+                  alert(response.data.message)
+                }
               }
-            }
-
-            else{
-              const response = await axios.post(`${process.env.REACT_APP_API_URL}/editor/delete-folder`, {
-                folderPath: `${projectPath}/${currentFolder}`});
-              if (response.data.success) {
-                await fetchProjectData();
-              } else {
-                console.log(response)
-                alert(response.data.message);
+              else {
+                alert("Invalid file name")
               }
-            }
+              setLoading(false)
 
-            
-          } catch (error) {
-            console.error('Error deleting folder:', error);
-          }
-        }} >
-          <Icon>
-              <DeleteIcon />
-          </Icon>
-        </IconButton>
+            }}
+          >
+            <Icon>
+              <NoteAddIcon />
+            </Icon>
+          </IconButton>
 
-        <IconButton onClick={async()=>{
-          const newDirName = prompt("Rename");
-          if(newDirName){
-            try {
+          <IconButton onClick={async () => {
+            const folderName = prompt("Enter folder name ");
+            if (folderName && folderName.includes('.') === false) {
+              //console.log(projectPath + currentFolder + folderName)
+              setLoading(true)
+
               const payload = {
-                oldPath: `${projectPath}/${currentFolder}`,
-                newDirName : newDirName,
+                DirName: `${currentFolder}/${folderName}`,
+                projectDirectory: `${projectPath}`,
+                clerkID: user.id
+              }
+
+              console.log(payload)
+
+              const response = await axios.post(`${process.env.REACT_APP_API_URL}/editor/new-folder`, payload)
+              if (response.data.success === true) {
+                await fetchProjectData();
+                updateFileTree();
+
+              }
+
+              else {
+                alert(response.data.message)
+              }
+            }
+            else {
+              alert("Invalid folder name")
+            }
+            setLoading(false)
+
+          }}>
+            <Icon>
+              <CreateNewFolderIcon />
+            </Icon>
+          </IconButton>
+
+          <IconButton onClick={async () => {
+            setLoading(true)
+
+            try {
+
+              const payload = {
+                dirPath: `${projectPath}/${currentFolder}`,
                 clerkID: user.id,
               };
-  
-              console.log(payload);
-  
-              const response = await axios.put(`${process.env.REACT_APP_API_URL}/editor/rename`, payload);
-              if (response.data.success) {
-                await fetchProjectData();
-              } else {
+
+
+              if (payload.dirPath.includes('.') === true) {
+                //delete file
+
+                const response = await axios.post(`${process.env.REACT_APP_API_URL}/editor/delete-file`, {
+                  filePath: `${projectPath}/${currentFolder}`
+                });
                 console.log(response)
-                alert(response.data.message);
+                if (response.data.success) {
+                  await fetchProjectData();
+                  updateFileTree();
+
+                } else {
+                  console.log(response)
+                  alert(response.data.message);
+                }
               }
+
+              else {
+                const response = await axios.post(`${process.env.REACT_APP_API_URL}/editor/delete-folder`, {
+                  folderPath: `${projectPath}/${currentFolder}`
+                });
+                if (response.data.success) {
+                  await fetchProjectData();
+                  updateFileTree();
+
+                } else {
+                  console.log(response)
+                  alert(response.data.message);
+                }
+              }
+
+
             } catch (error) {
               console.error('Error deleting folder:', error);
             }
-          }
-          else{
-            alert("New name not provided")
-          }
-          
-        }}>
-          <Icon>
-            <DriveFileRenameOutlineIcon />
-          </Icon>
-        </IconButton>
+            setLoading(false)
 
-       
-      {(fileStructure!=null && files!= null) && (<>
-        <FileTree  fileStructure={fileStructure} files={files}/>
-      </>)}
-      </Grid>
-      <Grid item xs={7}>
-        
-        <CodeEditor
-          ref={codeEditorRef}
-          language={language}
-          value={currentCode}
-          onChange={handleCodeChange}
+          }} >
+            <Icon>
+              <DeleteIcon />
+            </Icon>
+          </IconButton>
+
+          <IconButton onClick={async () => {
+            const newDirName = prompt("Rename");
+            if (newDirName) {
+              setLoading(true)
+
+              try {
+                const payload = {
+                  oldPath: `${projectPath}/${currentFolder}`,
+                  newDirName: newDirName,
+                  clerkID: user.id,
+                };
+
+                console.log(payload);
+
+                const response = await axios.put(`${process.env.REACT_APP_API_URL}/editor/rename`, payload);
+                if (response.data.success) {
+                  await fetchProjectData();
+                  updateFileTree();
+
+                } else {
+                  console.log(response)
+                  alert(response.data.message);
+                }
+              } catch (error) {
+                console.error('Error deleting folder:', error);
+              }
+              setLoading(false)
+
+            }
+            else {
+              alert("New name not provided")
+            }
+
+          }}>
+            <Icon>
+              <DriveFileRenameOutlineIcon />
+            </Icon>
+          </IconButton>
+
+
+          {loading && (
+            <CircularProgress size={24} />
+          )}
+
+
+          {(fileStructure != null && files != null) && (<>
+            <FileTree key={fileTreeKey} fileStructure={fileStructure} files={files} />
+          </>)}
+        </Grid>
+        <Grid item xs={7}>
+
+          <CodeEditor
+            ref={codeEditorRef}
+            language={language}
+            value={currentCode}
+            onChange={handleCodeChange}
           />
+        </Grid>
+        <Grid item xs={3}>
+          <Button variant='contained' style={{
+            marginBottom: "5px",
+            marginTop: "5px"
+          }} onClick={handleCurrentFileSave}>
+            Save current file
+          </Button>
+          <Terminal onData={handleTerminalData} />
+
+        </Grid>
       </Grid>
-      <Grid item xs={3}>
-      <Button variant='contained' style={{
-        marginBottom : "5px",
-        marginTop : "5px"
-      }} onClick={handleCurrentFileSave}>
-          Save current file
-        </Button>
-        <Terminal onData={handleTerminalData} />
-        
-      </Grid>
-    </Grid>
-        </SocketContextProvider>
+    </SocketContextProvider>
   );
 };
 
