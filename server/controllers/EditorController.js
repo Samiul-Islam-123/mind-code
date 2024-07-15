@@ -1,5 +1,6 @@
 const { ReadSpecificFile, SaveFileContents, CreateFile } = require("../services/FileServices");
-const { CreateDirectory, DeleteDirectory, RenameDirectory } = require("../services/FolderServices");
+const { CreateDirectory, RenameDirectory, DeleteFileOrDirectory } = require("../services/FolderServices");
+
 
 const ReadfileContents =async (req,res) => {
     const {filePath, clerkID} = req.params;
@@ -91,24 +92,51 @@ const CreateNewFolder = async(req,res) => {
     }
 }
 
+const DeleteDirectory = async (dirPath) => {
+    try {
+        const files = await fs.readdir(dirPath);
+
+        for (const file of files) {
+            const filePath = path.join(dirPath, file);
+            await DeleteFileOrDirectory(filePath);
+        }
+
+        await fs.rmdir(dirPath); // Delete empty directory after files are deleted
+        console.log("Directory deleted successfully:", dirPath);
+        return true;
+    } catch (error) {
+        console.error("Error deleting directory:", error);
+        throw error;
+    }
+};
+
 const DeleteController = async(req,res) => {
-    const {dirPath, clerkID} = req.body;
+    const { dirPath, clerkID } = req.body;
 
-    console.log(dirPath, clerkID)
-    
-        if(await DeleteDirectory(dirPath) === true)
+    try {
+        const result = await DeleteDirectory(dirPath);
+
+        if (result) {
             return res.json({
-                success : true,
-                message : "Deleted Successfully"
-            })
-
-        else
-        return res.json({
-            success : false,
-            message : "Error"
-        })
+                success: true,
+                message: "Deleted successfully"
+            });
+        } else {
+            return res.json({
+                success: false,
+                message: "Failed to delete directory"
+            });
+        }
+    } catch (error) {
+        console.error("Delete directory error:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error"
+        });
+    }
     
 }
+
 
 const RenameController = async(req,res) => {
     const {oldPath, newDirName, clerkID} = req.body;

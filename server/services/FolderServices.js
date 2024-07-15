@@ -73,6 +73,25 @@ const DeleteDirectory = (dirPath) => {
     });
 };
 
+
+const DeleteFileOrDirectory = async (pathToDelete) => {
+    try {
+        const stat = await fs.stat(pathToDelete);
+
+        if (stat.isDirectory()) {
+            await DeleteDirectory(pathToDelete); // If it's a directory, delete recursively
+        } else {
+            await fs.unlink(pathToDelete); // If it's a file, delete it directly
+            console.log("File deleted successfully:", pathToDelete);
+        }
+
+        return true;
+    } catch (error) {
+        console.error("Error deleting file or directory:", error);
+        throw error;
+    }
+};
+
 const RenameDirectory = (oldDirPath, newDirName) => {
     const newDirPath = path.join(path.dirname(oldDirPath), newDirName);
 
@@ -94,5 +113,6 @@ module.exports = {
     ReadAllDirectories,
     ReadEverythingInDirectory,
     DeleteDirectory,
-    RenameDirectory
+    RenameDirectory,
+    DeleteFileOrDirectory
 };
