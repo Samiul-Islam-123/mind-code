@@ -1,6 +1,7 @@
 const { ReadfileContents, SaveCurrentFile, CreateNewFile, CreateNewFolder, DeleteController, RenameController } = require("../controllers/EditorController");
 
 const EditorRouter = require("express").Router();
+const path = require('path')
 
 EditorRouter.get('/:filePath/:clerkID', ReadfileContents);
 EditorRouter.post('/save-file', SaveCurrentFile)

@@ -180,18 +180,34 @@ const IDE = () => {
 
             //console.log(payload);
 
-            console.log(payload.dirPath.includes('.'))
+            if(payload.dirPath.includes('.') === true){
+              //delete file
+              const response = await axios.post(`${process.env.REACT_APP_API_URL}/editor/delete-file`, {
+                filePath: `${projectPath}/${currentFolder}`,
+                clerkID: user.id,
+              });
+              if (response.data.success) {
+                await fetchProjectData();
+              } else {
+                console.log(response)
+                alert(response.data.message);
+              }
+            }
 
-            // const response = await axios.post(`${process.env.REACT_APP_API_URL}/editor/delete`, {
-            //   dirPath: `${projectPath}/${currentFolder}`,
-            //   clerkID: user.id,
-            // });
-            // if (response.data.success) {
-            //   await fetchProjectData();
-            // } else {
-            //   console.log(response)
-            //   alert(response.data.message);
-            // }
+            else{
+              const response = await axios.post(`${process.env.REACT_APP_API_URL}/editor/delete-folder`, {
+                folderPath: `${projectPath}/${currentFolder}`,
+                clerkID: user.id,
+              });
+              if (response.data.success) {
+                await fetchProjectData();
+              } else {
+                console.log(response)
+                alert(response.data.message);
+              }
+            }
+
+            
           } catch (error) {
             console.error('Error deleting folder:', error);
           }
