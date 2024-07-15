@@ -43,10 +43,11 @@ EditorRouter.post('/delete-folder', async (req, res) => {
 // Route to delete a file
 EditorRouter.post('/delete-file', async (req, res) => {
     const { filePath } = req.body;
+    console.log(filePath)
 
     try {
         // Verify filePath is provided and is a string
-        if (!filePath || typeof filePath !== 'string') {
+        if (!filePath) {
             return res.status(400).json({ error: 'Invalid file path' });
         }
 

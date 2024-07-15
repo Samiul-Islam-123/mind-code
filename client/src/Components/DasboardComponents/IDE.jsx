@@ -178,14 +178,15 @@ const IDE = () => {
               clerkID: user.id,
             };
 
-            //console.log(payload);
+            console.log(payload);
 
             if(payload.dirPath.includes('.') === true){
               //delete file
+
               const response = await axios.post(`${process.env.REACT_APP_API_URL}/editor/delete-file`, {
-                filePath: `${projectPath}/${currentFolder}`,
-                clerkID: user.id,
+                filePath: `${projectPath}/${currentFolder}`
               });
+              console.log(response)
               if (response.data.success) {
                 await fetchProjectData();
               } else {
@@ -196,9 +197,7 @@ const IDE = () => {
 
             else{
               const response = await axios.post(`${process.env.REACT_APP_API_URL}/editor/delete-folder`, {
-                folderPath: `${projectPath}/${currentFolder}`,
-                clerkID: user.id,
-              });
+                folderPath: `${projectPath}/${currentFolder}`              });
               if (response.data.success) {
                 await fetchProjectData();
               } else {
