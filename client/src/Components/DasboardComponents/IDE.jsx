@@ -178,15 +178,20 @@ const IDE = () => {
               clerkID: user.id,
             };
 
-            console.log(payload);
+            //console.log(payload);
 
-            const response = await axios.post(`${process.env.REACT_APP_API_URL}/editor/delete`, payload);
-            if (response.data.success) {
-              await fetchProjectData();
-            } else {
-              console.log(response)
-              alert(response.data.message);
-            }
+            console.log(payload.dirPath.includes('.'))
+
+            // const response = await axios.post(`${process.env.REACT_APP_API_URL}/editor/delete`, {
+            //   dirPath: `${projectPath}/${currentFolder}`,
+            //   clerkID: user.id,
+            // });
+            // if (response.data.success) {
+            //   await fetchProjectData();
+            // } else {
+            //   console.log(response)
+            //   alert(response.data.message);
+            // }
           } catch (error) {
             console.error('Error deleting folder:', error);
           }
