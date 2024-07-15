@@ -1,5 +1,5 @@
 import React, { useContext, useState } from 'react';
-import { Drawer, List, ListItem, ListItemIcon, ListItemText, IconButton, Box, Icon, Divider } from '@mui/material';
+import { Drawer, List, ListItem, ListItemIcon, ListItemText, IconButton, Box, Icon, Divider, CircularProgress } from '@mui/material';
 import { Home, Logout } from '@mui/icons-material';
 import MenuIcon from '@mui/icons-material/Menu';
 import AnalyticsIcon from '@mui/icons-material/Analytics';
@@ -9,12 +9,14 @@ import LightModeIcon from '@mui/icons-material/LightMode';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import { ThemeContext } from '../Context/ThemeContext';
 import { useNavigate } from 'react-router-dom';
+import { useCurrentCode } from '../Context/CurrentCodeContext';
 
 const Sidebar = ({ onOptionSelect }) => {
   const [open, setOpen] = useState(false);
   const [selectedOption, setSelectedOption] = useState('');
   const {toggleTheme, mode} = useContext(ThemeContext);
   const navigate = useNavigate();
+  const {projectLoading, setProjectLoading} = useCurrentCode();
 
   const toggleDrawer = () => {
     setOpen(!open);
@@ -74,6 +76,12 @@ const Sidebar = ({ onOptionSelect }) => {
               }
             </Icon>
           </IconButton>
+
+          {
+            projectLoading === true && (<>
+              <CircularProgress />
+            </>)
+          }
           
             <UserButton
               sx={{

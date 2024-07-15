@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { TextField, Button, MenuItem, FormControl, InputLabel, Select, Typography, Box } from '@mui/material';
 import { useUserData } from '../../Context/UserDataContext';
 import axios from 'axios';
+import { useCurrentCode } from '../../Context/CurrentCodeContext';
 
 const CreateProjectForm = () => {
   const [projectName, setProjectName] = useState('');
@@ -9,9 +10,12 @@ const CreateProjectForm = () => {
   const [description, setDescription] = useState('');
   const {userData, makeAPICall} = useUserData();
 
+  const {setProjectLoading} = useCurrentCode();
+
   const handleSubmit =async (e) => {
     e.preventDefault();
     // Handle form submission, e.g., send data to an API
+    setProjectLoading(true)
 
     const Response = await axios.post(`${process.env.REACT_APP_API_URL}/project`, {
       Projectname : projectName,
@@ -30,6 +34,7 @@ const CreateProjectForm = () => {
       console.log(Response);
       alert(Response.data.message)
      }
+     setProjectLoading(false)
   };
 
   return (

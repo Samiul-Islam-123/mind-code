@@ -9,9 +9,10 @@ export const CurrentCodeProvider = ({children}) => {
     const [projectPath, setprojectPath] = useState("");
     const [currentFolder, setcurrentFolder] = useState("");
     const [loading, setLoading] = useState(false);
+    const [projectLoading, setProjectLoading] = useState(false)
 
     return(
-        <CurrentCodeContext.Provider value={{currentCode, setCurrentCode, currentFilePath, setCurrentFilePath, projectPath, setprojectPath, currentFolder, setcurrentFolder, loading, setLoading}}>
+        <CurrentCodeContext.Provider value={{currentCode, setCurrentCode, currentFilePath, setCurrentFilePath, projectPath, setprojectPath, currentFolder, setcurrentFolder, loading, setLoading, projectLoading, setProjectLoading}}>
             {children}
         </CurrentCodeContext.Provider>
     )
