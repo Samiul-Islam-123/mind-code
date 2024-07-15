@@ -180,7 +180,7 @@ const IDE = () => {
 
             console.log(payload);
 
-            const response = await axios.delete(`${process.env.REACT_APP_API_URL}/editor/delete`, payload);
+            const response = await axios.post(`${process.env.REACT_APP_API_URL}/editor/delete`, payload);
             if (response.data.success) {
               await fetchProjectData();
             } else {
