@@ -15,7 +15,7 @@ jobs:
 
       - name: Stop PM2
         run: |
-          pm2 stop all || true  # Stop all running PM2 processes, ignore error if none are running
+          pm2 stop all || true  # Stop all running PM2 processes
 
       - name: Install Dependencies
         run: |
