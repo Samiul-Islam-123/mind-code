@@ -93,6 +93,8 @@ const CreateNewFolder = async(req,res) => {
 
 const DeleteController = async(req,res) => {
     const {dirPath, clerkID} = req.body;
+
+    console.log(dirPath, clerkID)
     
         if(await DeleteDirectory(dirPath) === true)
             return res.json({
