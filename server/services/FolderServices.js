@@ -7,10 +7,12 @@ const CreateDirectory = (DirName, projectDirectory) => {
     return fs.mkdir(dirPath, { recursive: true })
         .then(() => {
             console.log("Directory created successfully:", dirPath);
+            return true;
         })
         .catch((error) => {
             console.error("Error creating directory:", error);
             throw error;
+            return false;
         });
 };
 

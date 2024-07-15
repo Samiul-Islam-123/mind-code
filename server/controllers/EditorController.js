@@ -1,4 +1,5 @@
 const { ReadSpecificFile, SaveFileContents, CreateFile } = require("../services/FileServices");
+const { CreateDirectory } = require("../services/FolderServices");
 
 const ReadfileContents =async (req,res) => {
     const {filePath, clerkID} = req.params;
@@ -70,8 +71,22 @@ const CreateNewFile = async(req,res) => {
     }
 }
 
+const CreateNewFolder = async(req,res) => {
+    const {DirName, projectDirectory, clerkID} = req.body;
+    if(DirName && projectDirectory && clerkID) {
+        if(await CreateDirectory(DirName, projectDirectory) === true)
+            
+                return res.json({
+                    success : true,
+                    message : "Directory Created successfully"
+                })
+            
+    }
+}
+
 module.exports = {
     ReadfileContents,
     SaveCurrentFile,
-    CreateNewFile
+    CreateNewFile,
+    CreateNewFolder
 }
