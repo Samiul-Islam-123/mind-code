@@ -61,6 +61,8 @@ const IDE = () => {
 
   },[])
 
+
+
   const handleCurrentFileSave = async() => {
     const payload = {
       filePath : currentFilePath,
@@ -88,6 +90,8 @@ const IDE = () => {
     // // Implement code execution logic here
     //console.log(code)
   };
+
+
 
   return (
     <SocketContextProvider>
@@ -167,13 +171,59 @@ const IDE = () => {
           </Icon>
         </IconButton>
 
-        <IconButton >
+        <IconButton onClick={async() => {
+           try {
+            const payload = {
+              dirPath: `${projectPath}/${currentFolder}`,
+              clerkID: user.id,
+            };
+
+            console.log(payload);
+
+            const response = await axios.delete(`${process.env.REACT_APP_API_URL}/editor/delete`, payload);
+            if (response.data.success) {
+              await fetchProjectData();
+            } else {
+              console.log(response)
+              alert(response.data.message);
+            }
+          } catch (error) {
+            console.error('Error deleting folder:', error);
+          }
+        }} >
           <Icon>
               <DeleteIcon />
           </Icon>
         </IconButton>
 
-        <IconButton>
+        <IconButton onClick={async()=>{
+          const newDirName = prompt("Rename");
+          if(newDirName){
+            try {
+              const payload = {
+                oldPath: `${projectPath}/${currentFolder}`,
+                newDirName : newDirName,
+                clerkID: user.id,
+              };
+  
+              console.log(payload);
+  
+              const response = await axios.put(`${process.env.REACT_APP_API_URL}/editor/rename`, payload);
+              if (response.data.success) {
+                await fetchProjectData();
+              } else {
+                console.log(response)
+                alert(response.data.message);
+              }
+            } catch (error) {
+              console.error('Error deleting folder:', error);
+            }
+          }
+          else{
+            alert("New name not provided")
+          }
+          
+        }}>
           <Icon>
             <DriveFileRenameOutlineIcon />
           </Icon>

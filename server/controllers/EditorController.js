@@ -93,7 +93,7 @@ const CreateNewFolder = async(req,res) => {
 
 const DeleteController = async(req,res) => {
     const {dirPath, clerkID} = req.body;
-    if(dirPath && clerkID){
+    
         if(await DeleteDirectory(dirPath) === true)
             return res.json({
                 success : true,
@@ -105,14 +105,7 @@ const DeleteController = async(req,res) => {
             success : false,
             message : "Error"
         })
-    }
-    else
-    {
-        return res.json({
-            success : false,
-            message : "Insufficient Data"
-        })
-    }
+    
 }
 
 const RenameController = async(req,res) => {
