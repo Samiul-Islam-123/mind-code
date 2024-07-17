@@ -61,7 +61,7 @@ io.on("connection", (socket) => {
         socket.emit("set-path", newPath);
         socket.emit("command-out", `Directory changed to ${newPath}`);
       } else {
-        const commandProcess = spawn(data.command, { shell: true, cwd: currentPath });
+        const commandProcess = runCommand(data.command, currentPath);
 
         commandProcess.stdout.on('data', (data) => {
           socket.emit("command-out", data.toString());
@@ -85,6 +85,13 @@ io.on("connection", (socket) => {
     clientPaths.delete(socket.id);
   });
 });
+
+const runCommand = (cmd, cwd) => {
+  const shell = '/bin/sh';
+  const shellFlag = '-c';
+
+  return spawn(shell, [shellFlag, cmd], { cwd });
+};
 
 server.listen(PORT, async () => {
   console.log("Server is starting...");
