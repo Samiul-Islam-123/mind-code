@@ -53,6 +53,7 @@ io.on("connection", (socket) => {
   socket.on("command", async (data) => {
     try {
       const output = await runCommand(data.command, data.path);
+      console.log(output)
       socket.emit("command-out", output);
     } catch (error) {
       socket.emit("command-out", `Error: ${error.message}`);

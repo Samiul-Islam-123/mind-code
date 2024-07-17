@@ -8,33 +8,42 @@ function TerminalComponent({ onData }) {
     <TerminalOutput key={0}>Welcome to the React Terminal UI!</TerminalOutput>
   ]);
 
-  const {projectPath} = useCurrentCode();
+  const { projectPath } = useCurrentCode();
   const socket = useSocket();
   const [connection, setConnection] = useState(false);
 
   useEffect(() => {
-    if(socket){
-
-      socket.on("connected" , msg => {
-        console.log(msg)
+    if (socket) {
+      socket.on("connected", msg => {
+        console.log(msg);
         setConnection(true);
-        socket.emit('setPath', projectPath)
-      })
+        socket.emit('setPath', projectPath);
+      });
 
       socket.on('command-out', output => {
-        console.log(output)
+        console.log(output);
+        setTerminalLineData(prevData => [
+          ...prevData,
+          <TerminalOutput key={prevData.length}>{output}</TerminalOutput>
+        ]);
       });
     }
-  },[socket])
+  }, [socket, projectPath]);
 
   const handleTerminalInput = (input) => {
     console.log(`New terminal input received: '${input}'`);
-    onData(input);  // Callback to handle terminal input in the IDE component
-    
-    // Process the command and generate a response
-    const newTerminalLineData = processCommand(input);
+    onData(input); // Callback to handle terminal input in the IDE component
 
-    setTerminalLineData(newTerminalLineData);
+    // Emit the command to the server
+    if (socket) {
+      socket.emit('command-in', input);
+    }
+
+    // Display the entered command
+    setTerminalLineData(prevData => [
+      ...prevData,
+      <TerminalInput key={prevData.length} prompt="$">{input}</TerminalInput>
+    ]);
   };
 
   const processCommand = (command) => {
@@ -42,54 +51,35 @@ function TerminalComponent({ onData }) {
     const cmd = args[0];
     const rest = args.slice(1);
 
-    const newTerminalLineData = [...terminalLineData];
-
-    // Display the entered command
-    newTerminalLineData.push(
-      <TerminalInput key={newTerminalLineData.length} prompt="$">{command}</TerminalInput>
-    );
-
-    let response;
-
     switch (cmd) {
       case 'help':
-        response = 'Available commands: help, echo [text], fetch [url], clear';
-        break;
+        return 'Available commands: help, echo [text], fetch [url], clear';
       case 'echo':
-        response = rest.join(' ');
-        break;
+        return rest.join(' ');
       case 'fetch':
-        response = 'Fetching data... (mock implementation)'; // Add actual fetching logic if needed
-        break;
+        return 'Fetching data... (mock implementation)'; // Add actual fetching logic if needed
       case 'clear':
-        return [<TerminalOutput key={0}>Terminal cleared.</TerminalOutput>];
+        setTerminalLineData([<TerminalOutput key={0}>Terminal cleared.</TerminalOutput>]);
+        return '';
       default:
-       
-        response = `Command not found: ${cmd}`;
-        break;
+        return `Command not found: ${cmd}`;
     }
-
-    newTerminalLineData.push(
-      <TerminalOutput key={newTerminalLineData.length}>{response}</TerminalOutput>
-    );
-
-    return newTerminalLineData;
   };
 
   return (
     <div className="container">
-      {connection === true ? (<>
-        <Terminal 
-        height="81vh" 
-        prompt=">" 
-        colorMode={ColorMode.Dark} 
-        onInput={handleTerminalInput}
-      >
-        {terminalLineData}
-      </Terminal>
-      </>) : (<>
-        Connecting...
-      </>)}
+      {connection ? (
+        <Terminal
+          height="81vh"
+          prompt="$"
+          colorMode={ColorMode.Dark}
+          onInput={handleTerminalInput}
+        >
+          {terminalLineData}
+        </Terminal>
+      ) : (
+        <div>Connecting...</div>
+      )}
     </div>
   );
 }
