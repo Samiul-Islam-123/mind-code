@@ -7,26 +7,43 @@ function TerminalComponent({ onData }) {
   const [terminalLineData, setTerminalLineData] = useState([
     <TerminalOutput key={0}>Welcome to the React Terminal UI!</TerminalOutput>
   ]);
-
+  const [currentPath, setCurrentPath] = useState('');
+  
   const { projectPath } = useCurrentCode();
   const socket = useSocket();
   const [connection, setConnection] = useState(false);
 
   useEffect(() => {
     if (socket) {
-      socket.on("connected", msg => {
+      const handleConnected = (msg) => {
         console.log(msg);
         setConnection(true);
         socket.emit('setPath', projectPath);
-      });
+      };
 
-      socket.on('command-out', output => {
+      const handleCommandOut = (output) => {
         console.log(output);
         setTerminalLineData(prevData => [
           ...prevData,
           <TerminalOutput key={prevData.length}>{output}</TerminalOutput>
         ]);
-      });
+      };
+
+      const handleSetPath = (path) => {
+        console.log(`Directory changed to: ${path}`);
+        setCurrentPath(path);
+      };
+
+      socket.on("connected", handleConnected);
+      socket.on('command-out', handleCommandOut);
+      socket.on('set-path', handleSetPath);
+
+      // Cleanup function to remove event listeners
+      return () => {
+        socket.off("connected", handleConnected);
+        socket.off('command-out', handleCommandOut);
+        socket.off('set-path', handleSetPath);
+      };
     }
   }, [socket, projectPath]);
 
@@ -36,33 +53,18 @@ function TerminalComponent({ onData }) {
 
     // Emit the command to the server
     if (socket) {
-      socket.emit('command-in', input);
+      socket.emit('command', { command: input, path: currentPath });
     }
 
     // Display the entered command
     setTerminalLineData(prevData => [
       ...prevData,
-      <TerminalInput key={prevData.length} prompt="$">{input}</TerminalInput>
+      <TerminalInput key={prevData.length} prompt={`${currentPath} $`}>{input}</TerminalInput>
     ]);
-  };
 
-  const processCommand = (command) => {
-    const args = command.split(' ');
-    const cmd = args[0];
-    const rest = args.slice(1);
-
-    switch (cmd) {
-      case 'help':
-        return 'Available commands: help, echo [text], fetch [url], clear';
-      case 'echo':
-        return rest.join(' ');
-      case 'fetch':
-        return 'Fetching data... (mock implementation)'; // Add actual fetching logic if needed
-      case 'clear':
-        setTerminalLineData([<TerminalOutput key={0}>Terminal cleared.</TerminalOutput>]);
-        return '';
-      default:
-        return `Command not found: ${cmd}`;
+    // Handle clear command locally
+    if (input.trim() === "clear") {
+      setTerminalLineData([]);
     }
   };
 
@@ -71,7 +73,7 @@ function TerminalComponent({ onData }) {
       {connection ? (
         <Terminal
           height="81vh"
-          prompt="$"
+          prompt={`${currentPath} $`}
           colorMode={ColorMode.Dark}
           onInput={handleTerminalInput}
         >

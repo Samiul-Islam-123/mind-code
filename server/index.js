@@ -2,7 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const http = require("http");
 const { Server } = require("socket.io");
-const { exec } = require("child_process");
+const { spawn } = require("child_process");
 const dotenv = require("dotenv");
 const Connect = require("./configs/DatabaseConfig"); // Adjust as per your database configuration
 const UserRouter = require("./routes/UserRouter"); // Adjust as per your route configurations
@@ -35,6 +35,8 @@ app.use("/user", UserRouter);
 app.use("/project", ProjectRouter);
 app.use("/editor", EditorRouter);
 
+const clientPaths = new Map(); // Track current path for each client
+
 io.on("connection", (socket) => {
   console.log("A user connected: " + socket.id);
 
@@ -42,9 +44,9 @@ io.on("connection", (socket) => {
 
   socket.on("setPath", async (path) => {
     try {
-      await setPath(path);
-      const currentPath = await getCurrentPath();
-      socket.emit("command-out", `Directory changed to ${currentPath}`);
+      clientPaths.set(socket.id, path);
+      socket.emit("set-path", path);
+      socket.emit("command-out", `Directory changed to ${path}`);
     } catch (error) {
       socket.emit("command-out", `Error: ${error.message}`);
     }
@@ -52,9 +54,27 @@ io.on("connection", (socket) => {
 
   socket.on("command", async (data) => {
     try {
-      const output = await runCommand(data.command, data.path);
-      console.log(output)
-      socket.emit("command-out", output);
+      const currentPath = clientPaths.get(socket.id) || ".";
+      if (data.command.startsWith("cd ")) {
+        const newPath = data.command.substring(3).trim();
+        clientPaths.set(socket.id, newPath);
+        socket.emit("set-path", newPath);
+        socket.emit("command-out", `Directory changed to ${newPath}`);
+      } else {
+        const commandProcess = spawn(data.command, { shell: true, cwd: currentPath });
+
+        commandProcess.stdout.on('data', (data) => {
+          socket.emit("command-out", data.toString());
+        });
+
+        commandProcess.stderr.on('data', (data) => {
+          socket.emit("command-out", data.toString());
+        });
+
+        commandProcess.on('close', (code) => {
+          socket.emit("command-out", `Process exited with code ${code}`);
+        });
+      }
     } catch (error) {
       socket.emit("command-out", `Error: ${error.message}`);
     }
@@ -62,48 +82,9 @@ io.on("connection", (socket) => {
 
   socket.on("disconnect", () => {
     console.log("User disconnected: " + socket.id);
+    clientPaths.delete(socket.id);
   });
 });
-
-// Function to execute a command
-const runCommand = (cmd, path = ".") => {
-  return new Promise((resolve, reject) => {
-    exec(cmd, { cwd: path }, (error, stdout, stderr) => {
-      if (error) {
-        reject(new Error(stderr));
-      } else {
-        resolve(stdout);
-      }
-    });
-  });
-};
-
-// Function to change directory
-const setPath = (path) => {
-    console.log(path)
-  return new Promise((resolve, reject) => {
-    exec(`cd ${path}`, (error, stdout, stderr) => {
-      if (error) {
-        reject(new Error(`Failed to change directory to ${path}: ${stderr}`));
-      } else {
-        resolve(`Directory changed to ${path}`);
-      }
-    });
-  });
-};
-
-// Function to get current directory path
-const getCurrentPath = () => {
-  return new Promise((resolve, reject) => {
-    exec("pwd", (error, stdout, stderr) => {
-      if (error) {
-        reject(new Error(stderr));
-      } else {
-        resolve(stdout.trim());
-      }
-    });
-  });
-};
 
 server.listen(PORT, async () => {
   console.log("Server is starting...");
