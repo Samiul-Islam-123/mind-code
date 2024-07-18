@@ -20,11 +20,6 @@ const startProject = async (templateName) => {
       throw new Error(`Template ${templateName} not found`);
     }
 
-    for (const command of template.commands) {
-      console.log(`Running command: ${command}`);
-      await runCommand(command);
-    }
-
     // Run the server and client commands in separate terminals for MERN
     if (templateName === 'mern') {
       console.log(`Starting server: ${template.run[0]}`);
