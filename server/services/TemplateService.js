@@ -9,12 +9,16 @@ const commandsTemplates = [
             "touch index.html && echo '<!DOCTYPE html>\\n<html lang=\"en\">\\n<head>\\n<meta charset=\"UTF-8\">\\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\\n<title>Document</title>\\n<link rel=\"stylesheet\" href=\"style.css\">\\n</head>\\n<body>\\n<script src=\"script.js\"></script>\\n</body>\\n</html>' > index.html",
             "touch script.js && echo 'document.addEventListener(\"DOMContentLoaded\", () => {\\n    console.log(\"Hello, World!\");\\n});' > script.js",
             "touch style.css && echo 'body {\\n    font-family: Arial, sans-serif;\\n    margin: 0;\\n    padding: 0;\\n}' > style.css"
-        ]
+        ],
+        run: []
     },
     {
         template: "react",
         commands: [
             "npx create-react-app app"
+        ],
+        run: [
+            "cd app && npm start"
         ]
     },
     {
@@ -22,6 +26,9 @@ const commandsTemplates = [
         commands: [
             "npm init -y",
             "touch index.js && echo 'const express = require(\"express\");\\nconst app = express();\\nconst PORT = process.env.PORT || 3000;\\napp.get(\"/\", (req, res) => {\\n    res.send(\"Hello, World!\");\\n});\\napp.listen(PORT, () => {\\n    console.log(`Server is running on port ${PORT}`);\\n});' > index.js"
+        ],
+        run: [
+            "npm i express && node index.js"
         ]
     },
     {
@@ -30,9 +37,14 @@ const commandsTemplates = [
             "npx create-react-app client",
             "mkdir server",
             "sh -c 'cd server && npm init -y && touch index.js && echo \"const express = require(\\\"express\\\");\\nconst app = express();\\nconst PORT = process.env.PORT || 5000;\\napp.get(\\\"/\\\", (req, res) => {\\n    res.send(\\\"Hello from the server!\\\");\\n});\\napp.listen(PORT, () => {\\n    console.log(`Server is running on port ${PORT}`);\\n});\" > index.js'"
+        ],
+        run: [
+            "cd server && npm i express && npm start",
+            "cd client && npm start"
         ]
     }
 ];
+
 
 
 const createTemplate =async (templateName, projectPath) => {
