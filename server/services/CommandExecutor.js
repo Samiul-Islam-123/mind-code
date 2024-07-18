@@ -1,4 +1,5 @@
 const shell = require('shelljs');
+const commandsTemplates = require('./Templates');
 
 const runCommand = (cmd) => {
   return new Promise((resolve, reject) => {

@@ -8,6 +8,7 @@ const Connect = require("./configs/DatabaseConfig"); // Adjust as per your datab
 const UserRouter = require("./routes/UserRouter"); // Adjust as per your route configurations
 const ProjectRouter = require("./routes/ProjectRouter");
 const EditorRouter = require("./routes/EditorRouter");
+const { startProject } = require("./services/CommandExecutor");
 
 const app = express();
 const server = http.createServer(app);
@@ -79,6 +80,16 @@ io.on("connection", (socket) => {
       socket.emit("command-out", `Error: ${error.message}`);
     }
   });
+
+  socket.on("run-project", async(templateName) => {
+    try{
+      await startProject(templateName);
+      socket.emit("run-project-output", "Project started...")
+    }
+    catch(error){
+
+    }
+  })
 
   socket.on("disconnect", () => {
     console.log("User disconnected: " + socket.id);
