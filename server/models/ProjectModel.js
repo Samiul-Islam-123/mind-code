@@ -14,6 +14,7 @@ const ProjectSchema = new mongoose.Schema({
         type : String,
         required : true
     },
+    TemplateName : String,
     description : String
 })
 

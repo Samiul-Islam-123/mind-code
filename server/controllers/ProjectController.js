@@ -39,7 +39,8 @@ const createProject = async (req, res) => {
             Projectname : Projectname,
             owner : Owner._id,
             ProjectPath : path.join(ProjectPath, Projectname),
-            description : description
+            description : description,
+            TemplateName : template
         });
 
         await NewProject.save();
