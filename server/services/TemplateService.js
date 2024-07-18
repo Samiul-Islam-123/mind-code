@@ -1,4 +1,4 @@
-const runCommand = require("./CommandExecutor");
+const {runCommand} = require("./CommandExecutor");
 
 const shell = require('shelljs');
 const commandsTemplates = require("./Templates");
