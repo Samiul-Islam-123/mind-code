@@ -7,6 +7,7 @@ import Analytics from '../../../Components/DasboardComponents/Analytics';
 import Logout from '../../../Components/DasboardComponents/Logout';
 import { Route , Routes} from 'react-router-dom';
 import ProjectDetails from '../../../Components/CustomUIComponents/ProjectDetails';
+import { SocketContextProvider } from '../../../Context/SocketContext';
 
 const Dashboard = () => {
   const [selectedOption, setSelectedOption] = useState('home');
@@ -39,7 +40,14 @@ const Dashboard = () => {
       <div>
         <Routes>
           <Route path='/' element={<Home />} />
-          <Route path='/ide/:projectID' element={<IDE />} />
+          <Route 
+            path='/ide/:projectID' 
+            element={
+              <SocketContextProvider>
+                <IDE />
+              </SocketContextProvider>
+            } 
+          />
           <Route path='/analytics' element={<Analytics />} />
           <Route path='/logout' element={<Logout />} />
           <Route path='/project/:projectID' element={<ProjectDetails />} />

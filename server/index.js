@@ -83,8 +83,8 @@ io.on("connection", (socket) => {
 
   socket.on("run-project", async(templateName) => {
     try{
-      await startProject(templateName);
-      socket.emit("run-project-output", "Project started...")
+      const output = await startProject(templateName);
+      socket.emit("run-project-output", output);
     }
     catch(error){
 

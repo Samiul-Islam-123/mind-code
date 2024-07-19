@@ -30,7 +30,7 @@ const startProject = async (templateName) => {
     } else {
       for (const command of template.run) {
         console.log(`Running command: ${command}`);
-        await runCommand(command);
+        return await runCommand(command);
       }
     }
 
