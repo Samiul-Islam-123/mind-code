@@ -50,27 +50,35 @@ const CreateProjectForm = () => {
     e.preventDefault();
     setProjectLoading(true);
 
-    const Response = await axios.post(`${process.env.REACT_APP_API_URL}/project`, {
+    const packages = [
+      ...nodeOptions.additionalPackages,
+      ...nodeOptions.customPackages.split(',').map(pkg => pkg.trim()).filter(pkg => pkg)
+    ];
+
+    const requestData = {
       Projectname: projectName,
       clerkID: userData.user.clerkID,
       description: description,
       template: template,
-      nodeOptions: template === 'node' ? {
-        ...nodeOptions,
-        additionalPackages: [
-          ...nodeOptions.additionalPackages,
-          ...nodeOptions.customPackages.split(',').map(pkg => pkg.trim())
-        ]
-      } : null,
-    });
+      packages: template === 'node' ? packages : [], // Send an empty array if template is not node
+    };
 
-    if (Response.data.success === true) {
-      await makeAPICall();
-    } else {
-      console.log(Response);
-      alert(Response.data.message);
+    try {
+      //console.log(requestData)
+      const response = await axios.post(`${process.env.REACT_APP_API_URL}/project`, requestData);
+
+      if (response.data.success) {
+        await makeAPICall();
+      } else {
+        console.log(response);
+        alert(response.data.message);
+      }
+    } catch (error) {
+      console.error(error);
+      alert("An error occurred while creating the project.");
+    } finally {
+      setProjectLoading(false);
     }
-    setProjectLoading(false);
   };
 
   return (

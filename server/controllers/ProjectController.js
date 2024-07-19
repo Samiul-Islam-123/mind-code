@@ -10,7 +10,7 @@ const projectDirectory = path.join(rootdirectory, 'Projects');
 
 const createProject = async (req, res) => {
     try {
-        const { Projectname, clerkID, description, template } = req.body;
+        const { Projectname, clerkID, description, template, packages } = req.body;
 
         if (!Projectname || !clerkID)
             return res.json({
@@ -20,7 +20,7 @@ const createProject = async (req, res) => {
 
         // Extract mongoDB document ID of owner
         const Owner = await UserModel.findOne({
-            clerkID : clerkID
+            clerkID: clerkID
         });
 
         if (!Owner) {
@@ -36,8 +36,8 @@ const createProject = async (req, res) => {
 
         await createTemplate(template, path.join(ProjectPath, Projectname))
 
-         // Create package.json file
-         const packageJsonContent = {
+        // Create package.json file
+        const packageJsonContent = {
             name: Projectname,
             version: "1.0.0",
             description: description || "",
@@ -51,22 +51,22 @@ const createProject = async (req, res) => {
             }, {})
         };
 
-        CreateFile('package.json', packageJsonContent, path.join(ProjectPath, Projectname))
-        
+        await CreateFile('package.json', JSON.stringify(packageJsonContent, null, 2), path.join(ProjectPath, Projectname))
+
         const NewProject = new ProjectModel({
-            Projectname : Projectname,
-            owner : Owner._id,
-            ProjectPath : path.join(ProjectPath, Projectname),
-            description : description,
-            TemplateName : template
+            Projectname: Projectname,
+            owner: Owner._id,
+            ProjectPath: path.join(ProjectPath, Projectname),
+            description: description,
+            TemplateName: template
         });
 
         await NewProject.save();
 
         res.json({
-            success : true,
-            message : "Project Created Successfully",
-            projectData : NewProject
+            success: true,
+            message: "Project Created Successfully",
+            projectData: NewProject
         });
     } catch (error) {
         console.log(error);
@@ -76,6 +76,7 @@ const createProject = async (req, res) => {
         });
     }
 }
+
 
 const readProjectDetails = async (req, res) => {
     try {
