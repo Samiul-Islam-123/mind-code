@@ -3,6 +3,7 @@ const path = require("path");
 const UserModel = require("../models/UserModel");
 const { CreateDirectory, ReadEverythingInDirectory, DeleteDirectory } = require("../services/FolderServices");
 const createTemplate = require("../services/TemplateService");
+const { CreateFile } = require("../services/FileServices");
 
 const rootdirectory = path.resolve(__dirname, "../../");
 const projectDirectory = path.join(rootdirectory, 'Projects');
@@ -35,6 +36,23 @@ const createProject = async (req, res) => {
 
         await createTemplate(template, path.join(ProjectPath, Projectname))
 
+         // Create package.json file
+         const packageJsonContent = {
+            name: Projectname,
+            version: "1.0.0",
+            description: description || "",
+            main: "index.js",
+            scripts: {
+                start: "node index.js"
+            },
+            dependencies: packages.reduce((acc, pkg) => {
+                acc[pkg] = "latest";
+                return acc;
+            }, {})
+        };
+
+        CreateFile('package.json', packageJsonContent, path.join(ProjectPath, Projectname))
+        
         const NewProject = new ProjectModel({
             Projectname : Projectname,
             owner : Owner._id,

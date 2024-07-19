@@ -3,38 +3,74 @@ import { TextField, Button, MenuItem, FormControl, InputLabel, Select, Typograph
 import { useUserData } from '../../Context/UserDataContext';
 import axios from 'axios';
 import { useCurrentCode } from '../../Context/CurrentCodeContext';
+import NodeJsOptions from "../OptionsUI/NodeJsOptions"
 
 const CreateProjectForm = () => {
   const [projectName, setProjectName] = useState('');
   const [template, setTemplate] = useState('');
   const [description, setDescription] = useState('');
-  const {userData, makeAPICall} = useUserData();
+  const [nodeOptions, setNodeOptions] = useState({
+    express: false,
+    socket: false,
+    applicationType: '',
+    additionalPackages: [],
+    customPackages: '',
+  });
+  const { userData, makeAPICall } = useUserData();
+  const { setProjectLoading } = useCurrentCode();
 
-  const {setProjectLoading} = useCurrentCode();
+  const popularPackages = [
+    'express',
+    'socket.io',
+    'mongoose',
+    'cors',
+    'dotenv',
+    'jsonwebtoken',
+    'bcryptjs'
+  ];
 
-  const handleSubmit =async (e) => {
+  const handleNodeOptionsChange = (e) => {
+    const { name, value, checked, type } = e.target;
+    if (type === 'checkbox' && popularPackages.includes(name)) {
+      setNodeOptions((prev) => ({
+        ...prev,
+        additionalPackages: checked
+          ? [...prev.additionalPackages, name]
+          : prev.additionalPackages.filter(pkg => pkg !== name)
+      }));
+    } else {
+      setNodeOptions((prev) => ({
+        ...prev,
+        [name]: type === 'checkbox' ? checked : value,
+      }));
+    }
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Handle form submission, e.g., send data to an API
-    setProjectLoading(true)
+    setProjectLoading(true);
 
     const Response = await axios.post(`${process.env.REACT_APP_API_URL}/project`, {
-      Projectname : projectName,
-      clerkID : userData.user.clerkID,
-      description : description,
-      template : template
-     }) 
+      Projectname: projectName,
+      clerkID: userData.user.clerkID,
+      description: description,
+      template: template,
+      nodeOptions: template === 'node' ? {
+        ...nodeOptions,
+        additionalPackages: [
+          ...nodeOptions.additionalPackages,
+          ...nodeOptions.customPackages.split(',').map(pkg => pkg.trim())
+        ]
+      } : null,
+    });
 
-     //console.log(Response)
-
-     if(Response.data.success === true){
-      await makeAPICall()
-     }
-
-     else{
+    if (Response.data.success === true) {
+      await makeAPICall();
+    } else {
       console.log(Response);
-      alert(Response.data.message)
-     }
-     setProjectLoading(false)
+      alert(Response.data.message);
+    }
+    setProjectLoading(false);
   };
 
   return (
@@ -69,9 +105,16 @@ const CreateProjectForm = () => {
           <MenuItem value="react">React App</MenuItem>
           <MenuItem value="node">Node.js application</MenuItem>
           <MenuItem value="mern">MERN stack application</MenuItem>
-          
         </Select>
       </FormControl>
+
+      {template === 'node' && (
+        <NodeJsOptions
+          nodeOptions={nodeOptions}
+          handleNodeOptionsChange={handleNodeOptionsChange}
+          popularPackages={popularPackages}
+        />
+      )}
 
       <TextField
         label="Description"

@@ -38,6 +38,8 @@ function TerminalComponent({ onData }) {
       socket.on('command-out', handleCommandOut);
       socket.on('set-path', handleSetPath);
 
+      socket.on('run-project-output', handleCommandOut);
+
       // Cleanup function to remove event listeners
       return () => {
         socket.off("connected", handleConnected);
