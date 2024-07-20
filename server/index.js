@@ -4,17 +4,17 @@ const http = require("http");
 const { Server } = require("socket.io");
 const { spawn } = require("child_process");
 const dotenv = require("dotenv");
-const Connect = require("./configs/DatabaseConfig"); // Adjust as per your database configuration
-const UserRouter = require("./routes/UserRouter"); // Adjust as per your route configurations
+const Connect = require("./configs/DatabaseConfig");
+const UserRouter = require("./routes/UserRouter");
 const ProjectRouter = require("./routes/ProjectRouter");
 const EditorRouter = require("./routes/EditorRouter");
-const { startProject } = require("./services/CommandExecutor");
+const { startApplication, stopApplication, restartApplication } = require("./services/CommandExecutor");
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "*", // Adjust this as needed for your setup
+    origin: "*",
     methods: ["GET", "POST"],
   },
 });
@@ -37,6 +37,7 @@ app.use("/project", ProjectRouter);
 app.use("/editor", EditorRouter);
 
 const clientPaths = new Map(); // Track current path for each client
+const userProcesses = new Map(); // Track PM2 processes for each user
 
 io.on("connection", (socket) => {
   console.log("A user connected: " + socket.id);
@@ -81,19 +82,51 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("run-project", async(templateName) => {
-    try{
-      const output = await startProject(templateName);
-      socket.emit("run-project-output", output);
+  socket.on("run-project", async ({ templateName, projectPath , ProjectName}) => {
+    try {
+      console.log(templateName)
+      const processName = `${socket.id}-${templateName}`;
+      const output = await startApplication(projectPath, 'index.js', processName, templateName, ProjectName);
+      userProcesses.set(socket.id, processName);
+      socket.emit("command-out", output);
+    } catch (error) {
+      socket.emit("command-out", `Error: ${error.message}`);
     }
-    catch(error){
+  });
 
+  socket.on("update-project", async ({ templateName, projectPath, ProjectName }) => {
+    try {
+      console.log('updating project...')
+      const processName = userProcesses.get(socket.id);
+      if (processName) {
+        const output = await restartApplication(projectPath, 'index.js', processName, templateName, ProjectName);
+        socket.emit("command-out", output);
+      } else {
+        socket.emit("command-out", "No running process found for update");
+      }
+    } catch (error) {
+      socket.emit("command-out", `Error: ${error.message}`);
     }
+  });
+
+  socket.on('stop-project', () => {
+    const processName = userProcesses.get(socket.id);
+    if (processName) {
+      stopApplication(processName);
+    }
+    clientPaths.delete(socket.id);
+    userProcesses.delete(socket.id);
+    socket.emit("command-out", "Project Stopped")
   })
 
   socket.on("disconnect", () => {
     console.log("User disconnected: " + socket.id);
+    const processName = userProcesses.get(socket.id);
+    if (processName) {
+      stopApplication(processName);
+    }
     clientPaths.delete(socket.id);
+    userProcesses.delete(socket.id);
   });
 });
 

@@ -1,5 +1,6 @@
 const shell = require('shelljs');
 const commandsTemplates = require('./Templates');
+const path = require('path');
 
 const runCommand = (cmd) => {
   return new Promise((resolve, reject) => {
@@ -13,33 +14,44 @@ const runCommand = (cmd) => {
   });
 };
 
-const startProject = async (templateName) => {
-  try {
-    const template = commandsTemplates.find(t => t.template === templateName);
-    if (!template) {
-      throw new Error(`Template ${templateName} not found`);
-    }
+const startApplication = async (startFilePath, startFileName, processName, templateName, ProjectName) => {
+  console.log(templateName)
+  shell.cd(startFilePath);
+  console.log("Changed dir to: " + startFilePath);
+  let commandToRun;
+  if (templateName === 'node') {
 
-    // Run the server and client commands in separate terminals for MERN
-    if (templateName === 'mern') {
-      console.log(`Starting server: ${template.run[0]}`);
-      runCommand(template.run[0]);
-
-      console.log(`Starting client: ${template.run[1]}`);
-      runCommand(template.run[1]);
-    } else {
-      for (const command of template.run) {
-        console.log(`Running command: ${command}`);
-        return await runCommand(command);
-      }
-    }
-
-  } catch (error) {
-    console.error(`Error starting project: ${error.message}`);
+    await runCommand(`npm install`);
+    const startFile = path.join(startFilePath, startFileName);
+    commandToRun = `pm2 start ${startFile} --name ${processName}`
   }
+
+  else if (templateName === 'react') {
+    shell.cd('app')
+    commandToRun = `pm2 start npm --name "${processName}" -- start`
+  }
+  console.log(commandToRun)
+  const commandOutput = await runCommand(commandToRun);
+  return commandOutput;
+};
+
+const stopApplication = async (processName) => {
+  console.log("Stopping PM2 process..." + processName);
+  const commandOutput = await runCommand(`pm2 stop ${processName}`);
+  return commandOutput;
+};
+
+const restartApplication = async (startFilePath, startFileName, processName, templateName, ProjectName) => {
+  await stopApplication(processName);
+  //shell.cd(startFilePath);
+  //await runCommand(`npm install`);
+  const commandOutput = await startApplication(startFilePath, startFileName, processName, templateName, ProjectName);
+  return commandOutput;
 };
 
 module.exports = {
   runCommand,
-  startProject
+  startApplication,
+  stopApplication,
+  restartApplication
 };
