@@ -22,6 +22,8 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import StopCircleIcon from '@mui/icons-material/StopCircle';
 import PlayCircleFilledWhiteIcon from '@mui/icons-material/PlayCircleFilledWhite';
 import { useUserData } from '../../Context/UserDataContext';
+import debounce from 'lodash/debounce';
+
 
 const IDE = () => {
   const [language, setLanguage] = useState('javascript');
@@ -36,6 +38,7 @@ const IDE = () => {
   const [fileTreeKey, setFileTreeKey] = useState(0);
   const socket = useSocket();
   const { userData } = useUserData();
+  const [templateName, setTemplateName] = useState("")
 
   // Update fileTreeKey to trigger FileTree component rerender
   const updateFileTree = () => {
@@ -46,24 +49,37 @@ const IDE = () => {
     setCurrentCode(newValue);
   };
 
-  useEffect(() => {
-    if (autoSave && currentFilePath) {
-      const saveFile = async () => {
-        setLoading(true);
-        const payload = {
-          filePath: currentFilePath,
-          fileContents: currentCode,
-          clerkID: user.id
-        };
-
-        const response = await axios.post(`${process.env.REACT_APP_API_URL}/editor/save-file`, payload);
-        setLoading(false);
+  // Create a debounced version of the save function
+  const saveFile = useCallback(debounce(async () => {
+    if (currentFilePath) {
+      setLoading(true);
+      const payload = {
+        filePath: currentFilePath,
+        fileContents: currentCode,
+        clerkID: user.id
       };
-
-      saveFile()
-    
+      
+      try {
+        socket.emit('update-project', {
+          projectPath : projectPath,
+          templateName : templateName
+        })
+        await axios.post(`${process.env.REACT_APP_API_URL}/editor/save-file`, payload);
+      } catch (error) {
+        console.error('Error saving file:', error);
+      } finally {
+        setLoading(false);
+      }
     }
-  }, [currentCode, autoSave, currentFilePath, user.id]);
+  }, 1000), [currentFilePath, currentCode, user.id]); // Debounce delay is 1000ms (1 second)
+
+
+  useEffect(() => {
+    if (autoSave) {
+      saveFile();
+    }
+  }, [currentCode, autoSave, saveFile]); // Added saveFile to dependency array
+
 
   async function fetchProjectData() {
     setLoading(true);
@@ -71,6 +87,8 @@ const IDE = () => {
     if (response.data.success === true) {
       setFiles(response.data.Data);
       setprojectPath(response.data.projectData.ProjectPath);
+      //console.log(response.data.projectData.TemplateName)
+      setTemplateName(response.data.projectData.TemplateName);
       const updatedFileStructure = buildTree(response.data.Data, response.data.projectData.Projectname);
       setFileStructure(updatedFileStructure);
     } else {
@@ -98,8 +116,14 @@ const IDE = () => {
       setLoading(false);
       return;
     }
-
     const response = await axios.post(`${process.env.REACT_APP_API_URL}/editor/save-file`, payload);
+    if(response.data.success === true){
+
+      socket.emit('update-project', {
+        projectPath : projectPath,
+        templateName : templateName
+      })
+    }
     setLoading(false);
   };
 
@@ -254,12 +278,16 @@ const IDE = () => {
         </Button>
 
         <IconButton onClick={() => {
-          socket.emit('run-project', "node");
+          console.log(templateName)
+          socket.emit('run-project', {
+            templateName : templateName,
+            projectPath : projectPath
+          });
         }}>
           <Icon><PlayCircleFilledWhiteIcon /></Icon>
         </IconButton>
         <IconButton onClick={() => {
-          socket.emit('stop-project', "node");
+          socket.emit('stop-project');
         }}>
           <Icon><StopCircleIcon /></Icon>
         </IconButton>
